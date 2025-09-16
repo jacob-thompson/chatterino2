@@ -802,6 +802,8 @@ if (APPLE)
     set_source_files_properties(${MACOS_BUNDLE_ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
     list(APPEND SOURCE_FILES util/MacOsHelpers.mm)
+    list(APPEND SOURCE_FILES util/MacOSNotifications.h)
+    list(APPEND SOURCE_FILES util/MacOSNotifications.mm)
 endif ()
 
 # Generate source groups for use in IDEs
@@ -1153,6 +1155,13 @@ if (WIN32)
     target_link_libraries(${LIBRARY_PROJECT}
         PUBLIC
         WinToast)
+endif ()
+
+if (APPLE)
+    target_link_libraries(${LIBRARY_PROJECT}
+        PUBLIC
+        "-framework UserNotifications"
+        "-framework Foundation")
 endif ()
 
 target_link_libraries(${LIBRARY_PROJECT}

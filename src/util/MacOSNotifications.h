@@ -1,0 +1,35 @@
+#pragma once
+
+#ifdef Q_OS_MACOS
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * Request notification permission from the user.
+ * This should be called once when the application starts.
+ * The permission request is asynchronous.
+ */
+void chatterinoRequestNotificationPermission();
+
+/**
+ * Check if notification permission has been granted.
+ * @return true if permission is granted, false otherwise
+ */
+bool chatterinoHasNotificationPermission();
+
+/**
+ * Send a macOS notification using UNUserNotificationCenter.
+ * @param title The notification title
+ * @param body The notification body text
+ * @param identifier A unique identifier for this notification
+ * @param avatarPath Path to the avatar image file (can be NULL)
+ */
+void chatterinoSendNotification(const char* title, const char* body, const char* identifier, const char* avatarPath);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif // Q_OS_MACOS

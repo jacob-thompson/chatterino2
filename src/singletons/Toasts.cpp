@@ -19,6 +19,8 @@
 #    include <wintoastlib.h>
 #elif defined(CHATTERINO_WITH_LIBNOTIFY)
 #    include <libnotify/notify.h>
+#elif defined(Q_OS_MACOS)
+#    include "util/MacOSNotifications.h"
 #endif
 
 #include <QDesktopServices>
@@ -154,6 +156,9 @@ Toasts::~Toasts()
     {
         notify_uninit();
     }
+#elif defined(Q_OS_MACOS)
+    // No explicit cleanup needed for UNUserNotificationCenter
+    // The system handles it automatically
 #endif
 }
 
@@ -165,6 +170,10 @@ bool Toasts::isEnabled()
 
 #ifdef Q_OS_WIN
     enabled = enabled && WinToast::isCompatible();
+#elif defined(Q_OS_MACOS)
+    // macOS notifications are available on macOS 10.14+ (which we support)
+    // We'll check for authorization status in the implementation
+    enabled = enabled && true;
 #endif
 
     return enabled;
@@ -209,10 +218,14 @@ void Toasts::sendChannelNotification(const QString &channelName,
     auto sendChannelNotification = [this, channelName, channelTitle] {
         this->sendLibnotify(channelName, channelTitle);
     };
+#elif defined(Q_OS_MACOS)
+    auto sendChannelNotification = [this, channelName, channelTitle] {
+        this->sendMacOSNotification(channelName, channelTitle);
+    };
 #else
     (void)channelTitle;
     auto sendChannelNotification = [] {
-        // Unimplemented for macOS
+        // Unimplemented for other platforms
     };
 #endif
     // Fetch user profile avatar
@@ -426,6 +439,50 @@ void Toasts::sendLibnotify(const QString &channelName,
         g_object_unref(notif);
     }
 }
+#endif
+
+#elif defined(Q_OS_MACOS)
+
+void Toasts::ensureInitialized()
+{
+    if (this->initialized_)
+    {
+        return;
+    }
+    this->initialized_ = true;
+    
+    // Request notification permission if needed
+    chatterinoRequestNotificationPermission();
+}
+
+void Toasts::sendMacOSNotification(const QString &channelName,
+                                   const QString &channelTitle)
+{
+    this->ensureInitialized();
+    
+    qCDebug(chatterinoNotification) << "sending macOS notification";
+    
+    // Check if we have permission to send notifications
+    if (!chatterinoHasNotificationPermission())
+    {
+        qCWarning(chatterinoNotification) << "No notification permission for macOS";
+        return;
+    }
+    
+    QString title = channelName % u" is live!";
+    QString body = channelTitle;
+    QString identifier = u"chatterino_" % channelName;
+    QString avatarPath = avatarFilePath(channelName);
+    
+    // Send the notification using our C wrapper
+    chatterinoSendNotification(
+        title.toUtf8().constData(),
+        body.toUtf8().constData(), 
+        identifier.toUtf8().constData(),
+        avatarPath.toUtf8().constData()
+    );
+}
+
 #endif
 
 }  // namespace chatterino

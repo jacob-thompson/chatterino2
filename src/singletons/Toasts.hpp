@@ -38,6 +38,12 @@ private:
     void sendLibnotify(const QString &channelName, const QString &channelTitle);
 
     bool initialized_ = false;
+#elif defined(Q_OS_MACOS)
+    void ensureInitialized();
+    void sendMacOSNotification(const QString &channelName,
+                               const QString &channelTitle);
+
+    bool initialized_ = false;
 #endif
 };
 }  // namespace chatterino
