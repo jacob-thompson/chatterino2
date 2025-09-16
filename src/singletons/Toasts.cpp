@@ -443,8 +443,6 @@ void Toasts::sendLibnotify(const QString &channelName,
         g_object_unref(notif);
     }
 }
-#endif
-
 #elif defined(Q_OS_MACOS)
 
 void Toasts::ensureInitialized()
