@@ -504,6 +504,13 @@ void handleMacOSNotificationClick(const QString &channelName)
     performReaction(toastReaction, channelName);
 }
 
+// C wrapper function for Objective-C++ bridge
+extern "C" void handleMacOSNotificationClickC(const char* channelName)
+{
+    QString qChannelName = QString::fromUtf8(channelName);
+    handleMacOSNotificationClick(qChannelName);
+}
+
 #endif
 
 }  // namespace chatterino

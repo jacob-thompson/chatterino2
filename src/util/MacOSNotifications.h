@@ -34,6 +34,12 @@ void chatterinoSendNotification(const char* title, const char* body, const char*
  */
 void performReactionForMacOS(const char* channelName);
 
+/**
+ * C wrapper for handling notification clicks.
+ * @param channelName The channel name as a C string
+ */
+void handleMacOSNotificationClickC(const char* channelName);
+
 #ifdef __cplusplus
 }
 #endif

@@ -185,10 +185,9 @@ void performReactionForMacOS(const char* channelName) {
     QString qChannelName = QString::fromUtf8(channelName);
     qCDebug(chatterinoMacOSNotification) << "Performing reaction for channel:" << qChannelName;
     
-    // Call the actual implementation in Toasts.cpp 
-    // We'll use a different function name to avoid circular declaration
-    extern void handleMacOSNotificationClick(const QString &channelName);
-    handleMacOSNotificationClick(qChannelName);
+    // Call the C wrapper function from Toasts.cpp
+    extern void handleMacOSNotificationClickC(const char* channelName);
+    handleMacOSNotificationClickC(channelName);
 }
 
 } // extern "C"
