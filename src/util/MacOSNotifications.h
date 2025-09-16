@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef Q_OS_MACOS
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,5 +37,3 @@ void performReactionForMacOS(const char* channelName);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // Q_OS_MACOS

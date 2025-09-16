@@ -19,7 +19,7 @@
 #    include <wintoastlib.h>
 #elif defined(CHATTERINO_WITH_LIBNOTIFY)
 #    include <libnotify/notify.h>
-#elif defined(Q_OS_MACOS)
+#elif defined(Q_OS_MAC)
 #    include "util/MacOSNotifications.h"
 #endif
 
@@ -156,7 +156,7 @@ Toasts::~Toasts()
     {
         notify_uninit();
     }
-#elif defined(Q_OS_MACOS)
+#elif defined(Q_OS_MAC)
     // No explicit cleanup needed for UNUserNotificationCenter
     // The system handles it automatically
 #endif
@@ -170,7 +170,7 @@ bool Toasts::isEnabled()
 
 #ifdef Q_OS_WIN
     enabled = enabled && WinToast::isCompatible();
-#elif defined(Q_OS_MACOS)
+#elif defined(Q_OS_MAC)
     // macOS notifications are available on macOS 10.14+ (which we support)
     // We'll check for authorization status in the implementation
     enabled = enabled && true;
@@ -222,7 +222,7 @@ void Toasts::sendChannelNotification(const QString &channelName,
     auto sendChannelNotification = [this, channelName, channelTitle] {
         this->sendLibnotify(channelName, channelTitle);
     };
-#elif defined(Q_OS_MACOS)
+#elif defined(Q_OS_MAC)
     auto sendChannelNotification = [this, channelName, channelTitle] {
         this->sendMacOSNotification(channelName, channelTitle);
     };
@@ -443,7 +443,8 @@ void Toasts::sendLibnotify(const QString &channelName,
         g_object_unref(notif);
     }
 }
-#elif defined(Q_OS_MACOS)
+
+#elif defined(Q_OS_MAC)
 
 void Toasts::ensureInitialized()
 {

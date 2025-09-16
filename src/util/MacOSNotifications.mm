@@ -13,8 +13,6 @@
 
 #include "MacOSNotifications.h"
 
-#ifdef Q_OS_MACOS
-
 #import <UserNotifications/UserNotifications.h>
 #import <Foundation/Foundation.h>
 
@@ -194,5 +192,3 @@ void performReactionForMacOS(const char* channelName) {
 }
 
 } // extern "C"
-
-#endif // Q_OS_MACOS
