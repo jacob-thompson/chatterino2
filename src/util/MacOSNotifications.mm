@@ -69,7 +69,6 @@ extern "C" void performReactionForMacOS(const char* channelName);
 
 // Global variables
 static BOOL g_permissionRequested = NO;
-static BOOL g_permissionGranted = NO;
 static ChatterinoNotificationDelegate *g_delegate = nil;
 
 // C wrapper function implementations
@@ -90,30 +89,49 @@ void chatterinoRequestNotificationPermission() {
         center.delegate = g_delegate;
     }
     
-    UNAuthorizationOptions options = UNAuthorizationOptionAlert | UNAuthorizationOptionSound;
-    
-    [center requestAuthorizationWithOptions:options completionHandler:^(BOOL granted, NSError * _Nullable error) {
-        g_permissionGranted = granted;
+    // Check current status first
+    [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
+        UNAuthorizationStatus currentStatus = settings.authorizationStatus;
         
-        if (error) {
-            qCWarning(chatterinoMacOSNotification) << "Notification permission error:" 
-                << QString::fromUtf8([error.localizedDescription UTF8String]);
-        } else if (granted) {
-            qCDebug(chatterinoMacOSNotification) << "Notification permission granted";
+        if (currentStatus == UNAuthorizationStatusNotDetermined) {
+            // If status is notDetermined, request permission
+            UNAuthorizationOptions options = UNAuthorizationOptionAlert | UNAuthorizationOptionSound;
+            
+            [center requestAuthorizationWithOptions:options completionHandler:^(BOOL granted, NSError * _Nullable error) {
+                if (error) {
+                    qCWarning(chatterinoMacOSNotification) << "Notification permission error:" 
+                        << QString::fromUtf8([error.localizedDescription UTF8String]);
+                } else if (granted) {
+                    qCDebug(chatterinoMacOSNotification) << "Notification permission granted";
+                } else {
+                    qCDebug(chatterinoMacOSNotification) << "Notification permission denied";
+                }
+            }];
+        } else if (currentStatus == UNAuthorizationStatusAuthorized) {
+            qCDebug(chatterinoMacOSNotification) << "Notification permission already granted";
         } else {
-            qCDebug(chatterinoMacOSNotification) << "Notification permission denied";
+            qCDebug(chatterinoMacOSNotification) << "Notification permission denied or restricted";
         }
     }];
 }
 
 bool chatterinoHasNotificationPermission() {
-    if (!g_permissionRequested) {
-        return false;
-    }
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
     
-    // For a more accurate check, we could use getNotificationSettingsWithCompletionHandler
-    // but this is simpler and sufficient for our use case
-    return g_permissionGranted;
+    // Use a semaphore to make this synchronous
+    dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+    __block BOOL hasPermission = NO;
+    
+    [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
+        hasPermission = (settings.authorizationStatus == UNAuthorizationStatusAuthorized);
+        dispatch_semaphore_signal(semaphore);
+    }];
+    
+    // Wait for the async call to complete (with timeout)
+    dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC); // 1 second timeout
+    dispatch_semaphore_wait(semaphore, timeout);
+    
+    return hasPermission;
 }
 
 void chatterinoSendNotification(const char* title, const char* body, const char* identifier, const char* avatarPath, bool playSound) {
