@@ -210,6 +210,10 @@ QString Toasts::findStringFromReaction(
 void Toasts::sendChannelNotification(const QString &channelName,
                                      const QString &channelTitle)
 {
+// Platform-specific notification implementations:
+// - Windows: Uses WinToast library for Windows 10+ toast notifications
+// - Linux: Uses libnotify for desktop notifications via D-Bus
+// - macOS: Uses UNUserNotificationCenter for native notifications (macOS 10.14+)
 #ifdef Q_OS_WIN
     auto sendChannelNotification = [this, channelName, channelTitle] {
         this->sendWindowsNotification(channelName, channelTitle);
@@ -451,7 +455,9 @@ void Toasts::ensureInitialized()
     }
     this->initialized_ = true;
     
-    // Request notification permission if needed
+    // Request notification permission using UNUserNotificationCenter
+    // This is required by macOS for apps to send notifications
+    // The permission dialog will be shown to the user on first request
     chatterinoRequestNotificationPermission();
 }
 
@@ -463,6 +469,7 @@ void Toasts::sendMacOSNotification(const QString &channelName,
     qCDebug(chatterinoNotification) << "sending macOS notification";
     
     // Check if we have permission to send notifications
+    // macOS requires explicit user permission for notifications
     if (!chatterinoHasNotificationPermission())
     {
         qCWarning(chatterinoNotification) << "No notification permission for macOS";
@@ -471,16 +478,31 @@ void Toasts::sendMacOSNotification(const QString &channelName,
     
     QString title = channelName % u" is live!";
     QString body = channelTitle;
-    QString identifier = u"chatterino_" % channelName;
+    QString identifier = u"chatterino_" % channelName;  // Used for click handling
     QString avatarPath = avatarFilePath(channelName);
+    bool playSound = getSettings()->notificationPlaySound;
     
-    // Send the notification using our C wrapper
+    // Send the notification using our Objective-C++ wrapper
+    // This bridges C++ to the UNUserNotificationCenter Objective-C API
     chatterinoSendNotification(
         title.toUtf8().constData(),
         body.toUtf8().constData(), 
         identifier.toUtf8().constData(),
-        avatarPath.toUtf8().constData()
+        avatarPath.toUtf8().constData(),
+        playSound
     );
+}
+
+// Function called from macOS notification delegate when user clicks notification
+// This implements the same behavior as Windows/Linux notifications
+void handleMacOSNotificationClick(const QString &channelName)
+{
+    // Use the same reaction logic as other platforms
+    // The user's preferred action is read from settings
+    auto toastReaction =
+        static_cast<ToastReaction>(getSettings()->openFromToast.getValue());
+    
+    performReaction(toastReaction, channelName);
 }
 
 #endif

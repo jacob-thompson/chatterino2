@@ -27,6 +27,23 @@ Local dev machines for testing are available on Apple Silicon on macOS 13.
 
 Your binary can now be found under bin/chatterino.app/Contents/MacOS/chatterino directory
 
+## macOS Features
+
+### Native Notifications
+
+Chatterino2 on macOS uses the native UNUserNotificationCenter framework for notifications when a channel goes live. This provides a better user experience with:
+
+- Native macOS notification appearance and behavior  
+- System-wide notification settings integration
+- Support for notification actions (clicking to open the channel)
+- Automatic permission handling
+
+The application will request notification permission on first launch when notifications are enabled in settings. You can manage notification permissions through:
+- System Preferences → Notifications & Focus → Chatterino
+- Or by right-clicking on the notification and selecting "Turn off notifications for Chatterino"
+
+No additional configuration or entitlements are required - the UserNotifications framework is available to all applications on macOS 10.14+.
+
 ### Other building methods
 
 You can achieve similar results by using an IDE like Qt Creator, although this is undocumented but if you know the IDE you should have no problems applying the terminal instructions to your IDE.

@@ -1,3 +1,16 @@
+/*
+ * macOS native notifications implementation using UNUserNotificationCenter
+ * 
+ * This file provides a C interface to macOS's Objective-C UNUserNotificationCenter
+ * framework, allowing Chatterino2's C++ code to send native macOS notifications.
+ * 
+ * Key features:
+ * - Request and manage notification permissions
+ * - Send notifications with title, body, and optional avatar image
+ * - Handle user clicks on notifications to perform actions
+ * - Support for sound/silent notifications based on user settings
+ */
+
 #include "MacOSNotifications.h"
 
 #ifdef Q_OS_MACOS
@@ -12,6 +25,9 @@
 
 Q_LOGGING_CATEGORY(chatterinoMacOSNotification, "chatterino.macos.notification");
 
+// Forward declare the C function that will call back to C++
+extern "C" void performReactionForMacOS(const char* channelName);
+
 // Helper function to convert QString to NSString
 @interface NSString (QString)
 + (NSString *)stringWithQString:(const QString &)qstring;
@@ -23,9 +39,40 @@ Q_LOGGING_CATEGORY(chatterinoMacOSNotification, "chatterino.macos.notification")
 }
 @end
 
-// Global permission status to avoid repeated authorization requests
+// Notification delegate to handle user responses
+// This delegate receives callbacks when users interact with notifications
+@interface ChatterinoNotificationDelegate : NSObject <UNUserNotificationCenterDelegate>
+@end
+
+@implementation ChatterinoNotificationDelegate
+
+// Called when user clicks on a notification
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+       didReceiveNotificationResponse:(UNNotificationResponse *)response
+                withCompletionHandler:(void (^)(void))completionHandler {
+    
+    NSString *identifier = response.notification.request.identifier;
+    
+    // Extract channel name from identifier (format: "chatterino_channelname")
+    if ([identifier hasPrefix:@"chatterino_"]) {
+        NSString *channelName = [identifier substringFromIndex:[@"chatterino_" length]];
+        
+        qCDebug(chatterinoMacOSNotification) << "Notification clicked for channel:" 
+            << QString::fromUtf8([channelName UTF8String]);
+        
+        // Call the C function that will handle the reaction
+        performReactionForMacOS([channelName UTF8String]);
+    }
+    
+    completionHandler();
+}
+
+@end
+
+// Global variables
 static BOOL g_permissionRequested = NO;
 static BOOL g_permissionGranted = NO;
+static ChatterinoNotificationDelegate *g_delegate = nil;
 
 // C wrapper function implementations
 extern "C" {
@@ -38,6 +85,13 @@ void chatterinoRequestNotificationPermission() {
     g_permissionRequested = YES;
     
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    
+    // Set up delegate to handle notification responses
+    if (!g_delegate) {
+        g_delegate = [[ChatterinoNotificationDelegate alloc] init];
+        center.delegate = g_delegate;
+    }
+    
     UNAuthorizationOptions options = UNAuthorizationOptionAlert | UNAuthorizationOptionSound;
     
     [center requestAuthorizationWithOptions:options completionHandler:^(BOOL granted, NSError * _Nullable error) {
@@ -64,7 +118,7 @@ bool chatterinoHasNotificationPermission() {
     return g_permissionGranted;
 }
 
-void chatterinoSendNotification(const char* title, const char* body, const char* identifier, const char* avatarPath) {
+void chatterinoSendNotification(const char* title, const char* body, const char* identifier, const char* avatarPath, bool playSound) {
     if (!chatterinoHasNotificationPermission()) {
         qCWarning(chatterinoMacOSNotification) << "Cannot send notification: no permission";
         return;
@@ -77,8 +131,12 @@ void chatterinoSendNotification(const char* title, const char* body, const char*
     content.title = [NSString stringWithUTF8String:title];
     content.body = [NSString stringWithUTF8String:body];
     
-    // Add sound if enabled (we'll check the setting in C++)
-    content.sound = [UNNotificationSound defaultSound];
+    // Add sound based on the setting
+    if (playSound) {
+        content.sound = [UNNotificationSound defaultSound];
+    } else {
+        content.sound = nil; // No sound
+    }
     
     // Try to add avatar image if available
     if (avatarPath && strlen(avatarPath) > 0) {
@@ -122,6 +180,19 @@ void chatterinoSendNotification(const char* title, const char* body, const char*
             qCDebug(chatterinoMacOSNotification) << "Successfully sent notification for" << identifier;
         }
     }];
+}
+
+// C wrapper to call back to the C++ code for handling notification clicks
+extern "C" {
+void performReactionForMacOS(const char* channelName) {
+    QString qChannelName = QString::fromUtf8(channelName);
+    qCDebug(chatterinoMacOSNotification) << "Performing reaction for channel:" << qChannelName;
+    
+    // Call the actual implementation in Toasts.cpp 
+    // We'll use a different function name to avoid circular declaration
+    extern void handleMacOSNotificationClick(const QString &channelName);
+    handleMacOSNotificationClick(qChannelName);
+}
 }
 
 } // extern "C"
