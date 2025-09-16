@@ -183,7 +183,6 @@ void chatterinoSendNotification(const char* title, const char* body, const char*
 }
 
 // C wrapper to call back to the C++ code for handling notification clicks
-extern "C" {
 void performReactionForMacOS(const char* channelName) {
     QString qChannelName = QString::fromUtf8(channelName);
     qCDebug(chatterinoMacOSNotification) << "Performing reaction for channel:" << qChannelName;
@@ -192,7 +191,6 @@ void performReactionForMacOS(const char* channelName) {
     // We'll use a different function name to avoid circular declaration
     extern void handleMacOSNotificationClick(const QString &channelName);
     handleMacOSNotificationClick(qChannelName);
-}
 }
 
 } // extern "C"
