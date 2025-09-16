@@ -75,10 +75,14 @@ static ChatterinoNotificationDelegate *g_delegate = nil;
 extern "C" {
 
 void chatterinoRequestNotificationPermission() {
+    qCDebug(chatterinoMacOSNotification) << "chatterinoRequestNotificationPermission called";
+    
     if (g_permissionRequested) {
+        qCDebug(chatterinoMacOSNotification) << "Permission already requested, returning";
         return;
     }
     
+    qCDebug(chatterinoMacOSNotification) << "Setting permission requested flag and proceeding";
     g_permissionRequested = YES;
     
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
@@ -87,13 +91,17 @@ void chatterinoRequestNotificationPermission() {
     if (!g_delegate) {
         g_delegate = [[ChatterinoNotificationDelegate alloc] init];
         center.delegate = g_delegate;
+        qCDebug(chatterinoMacOSNotification) << "Set up notification delegate";
     }
     
     // Check current status first
+    qCDebug(chatterinoMacOSNotification) << "Checking current notification settings";
     [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
         UNAuthorizationStatus currentStatus = settings.authorizationStatus;
+        qCDebug(chatterinoMacOSNotification) << "Current authorization status:" << (int)currentStatus;
         
         if (currentStatus == UNAuthorizationStatusNotDetermined) {
+            qCDebug(chatterinoMacOSNotification) << "Status is not determined, requesting permission";
             // If status is notDetermined, request permission
             UNAuthorizationOptions options = UNAuthorizationOptionAlert | UNAuthorizationOptionSound;
             
@@ -121,15 +129,20 @@ bool chatterinoHasNotificationPermission() {
     // Use a semaphore to make this synchronous
     dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
     __block BOOL hasPermission = NO;
+    __block UNAuthorizationStatus authStatus = UNAuthorizationStatusNotDetermined;
     
     [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
-        hasPermission = (settings.authorizationStatus == UNAuthorizationStatusAuthorized);
+        authStatus = settings.authorizationStatus;
+        hasPermission = (authStatus == UNAuthorizationStatusAuthorized);
         dispatch_semaphore_signal(semaphore);
     }];
     
     // Wait for the async call to complete (with timeout)
     dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 1 * NSEC_PER_SEC); // 1 second timeout
-    dispatch_semaphore_wait(semaphore, timeout);
+    long result = dispatch_semaphore_wait(semaphore, timeout);
+    
+    qCDebug(chatterinoMacOSNotification) << "Permission check - Status:" << (int)authStatus 
+        << "HasPermission:" << hasPermission << "Timeout:" << (result != 0);
     
     return hasPermission;
 }

@@ -448,16 +448,21 @@ void Toasts::sendLibnotify(const QString &channelName,
 
 void Toasts::ensureInitialized()
 {
+    qCDebug(chatterinoNotification) << "Toasts::ensureInitialized called for macOS";
+    
     if (this->initialized_)
     {
+        qCDebug(chatterinoNotification) << "Already initialized, returning";
         return;
     }
     this->initialized_ = true;
     
+    qCDebug(chatterinoNotification) << "Calling chatterinoRequestNotificationPermission";
     // Request notification permission using UNUserNotificationCenter
     // This is required by macOS for apps to send notifications
     // The permission dialog will be shown to the user on first request
     chatterinoRequestNotificationPermission();
+    qCDebug(chatterinoNotification) << "Finished calling chatterinoRequestNotificationPermission";
 }
 
 void Toasts::sendMacOSNotification(const QString &channelName,
