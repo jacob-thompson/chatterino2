@@ -8,6 +8,9 @@
 #include "util/LayoutCreator.hpp"
 #include "util/Twitch.hpp"
 #include "widgets/helper/EditableModelView.hpp"
+#ifdef Q_OS_MAC
+#include "util/MacOSNotifications.h"
+#endif
 
 #include <QCheckBox>
 #include <QFileDialog>
@@ -46,20 +49,23 @@ NotificationPage::NotificationPage()
                 settings.append(this->createCheckBox(
                     "Suppress live notifications on startup",
                     getSettings()->suppressInitialLiveNotification));
-#if defined(Q_OS_WIN) || defined(CHATTERINO_WITH_LIBNOTIFY)
-                settings.append(this->createCheckBox(
-                    "Show notification", getSettings()->notificationToast));
+#if defined(Q_OS_WIN) || defined(CHATTERINO_WITH_LIBNOTIFY) || defined(Q_OS_MAC)
+                auto notificationCheckbox = this->createCheckBox(
+                    "Show notification", getSettings()->notificationToast);
+                settings.append(notificationCheckbox);
+                
+#ifdef Q_OS_MAC
+                // On macOS, request notification permission when enabled
+                QObject::connect(notificationCheckbox, &QCheckBox::toggled, this,
+                                [](bool enabled) {
+                                    if (enabled) {
+                                        // Request notification permission immediately
+                                        chatterinoRequestNotificationPermission();
+                                    }
+                                });
 #endif
-#ifdef Q_OS_WIN
-                settings.append(this->createCheckBox(
-                    "Create start menu shortcut (requires "
-                    "restart)",
-                    getSettings()->createShortcutForToasts,
-                    "When enabled, a shortcut will be created inside your "
-                    "start menu folder if needed by live notifications."
-                    "\n(On portable mode, this is disabled by "
-                    "default)"));
-
+#endif
+#if defined(Q_OS_WIN) || defined(Q_OS_MAC)
                 auto openIn = settings.emplace<QHBoxLayout>().withoutMargin();
                 {
                     openIn
@@ -77,6 +83,16 @@ NotificationPage::NotificationPage()
                 }
                 openIn->setContentsMargins(40, 0, 0, 0);
                 openIn->setSizeConstraint(QLayout::SetMaximumSize);
+#endif
+#ifdef Q_OS_WIN
+                settings.append(this->createCheckBox(
+                    "Create start menu shortcut (requires "
+                    "restart)",
+                    getSettings()->createShortcutForToasts,
+                    "When enabled, a shortcut will be created inside your "
+                    "start menu folder if needed by live notifications."
+                    "\n(On portable mode, this is disabled by "
+                    "default)"));
 #endif
                 auto customSound =
                     layout.emplace<QHBoxLayout>().withoutMargin();
