@@ -103,16 +103,18 @@ void chatterinoRequestNotificationPermission() {
         if (currentStatus == UNAuthorizationStatusNotDetermined) {
             qCDebug(chatterinoMacOSNotification) << "Status is not determined, requesting permission";
             // If status is notDetermined, request permission
-            UNAuthorizationOptions options = UNAuthorizationOptionAlert | UNAuthorizationOptionSound;
+            UNAuthorizationOptions options = UNAuthorizationOptionAlert | UNAuthorizationOptionSound | UNAuthorizationOptionBadge;
             
             [center requestAuthorizationWithOptions:options completionHandler:^(BOOL granted, NSError * _Nullable error) {
                 if (error) {
                     qCWarning(chatterinoMacOSNotification) << "Notification permission error:" 
-                        << QString::fromUtf8([error.localizedDescription UTF8String]);
+                        << QString::fromUtf8([error.localizedDescription UTF8String])
+                        << "Domain:" << QString::fromUtf8([error.domain UTF8String])
+                        << "Code:" << error.code;
                 } else if (granted) {
                     qCDebug(chatterinoMacOSNotification) << "Notification permission granted";
                 } else {
-                    qCDebug(chatterinoMacOSNotification) << "Notification permission denied";
+                    qCDebug(chatterinoMacOSNotification) << "Notification permission denied by user";
                 }
             }];
         } else if (currentStatus == UNAuthorizationStatusAuthorized) {

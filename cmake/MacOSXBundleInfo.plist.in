@@ -30,7 +30,11 @@
 	<string>${MACOSX_BUNDLE_COPYRIGHT}</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
-	<key>NSUserNotificationAlertStyle</key>
-	<string>alert</string>
+	<key>LSUIElement</key>
+	<false/>
+	<key>NSSupportsAutomaticTermination</key>
+	<true/>
+	<key>NSSupportsSuddenTermination</key>
+	<false/>
 </dict>
 </plist>
