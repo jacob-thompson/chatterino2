@@ -133,7 +133,10 @@ bool chatterinoHasNotificationPermission() {
     
     [center getNotificationSettingsWithCompletionHandler:^(UNNotificationSettings * _Nonnull settings) {
         authStatus = settings.authorizationStatus;
-        hasPermission = (authStatus == UNAuthorizationStatusAuthorized);
+        // Allow notifications if authorized OR if status is not determined (first run)
+        // This allows notifications to work on first run before user has decided
+        hasPermission = (authStatus == UNAuthorizationStatusAuthorized) || 
+                       (authStatus == UNAuthorizationStatusNotDetermined);
         dispatch_semaphore_signal(semaphore);
     }];
     
@@ -148,12 +151,11 @@ bool chatterinoHasNotificationPermission() {
 }
 
 void chatterinoSendNotification(const char* title, const char* body, const char* identifier, const char* avatarPath, bool playSound) {
-    if (!chatterinoHasNotificationPermission()) {
-        qCWarning(chatterinoMacOSNotification) << "Cannot send notification: no permission";
-        return;
-    }
-    
     UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+    
+    // Try to send the notification regardless of current permission status
+    // If permission is needed, the system will handle requesting it or failing gracefully
+    qCDebug(chatterinoMacOSNotification) << "Sending notification:" << title;
     
     // Create notification content
     UNMutableNotificationContent *content = [[UNMutableNotificationContent alloc] init];
