@@ -41,10 +41,6 @@ void Label::setText(const QString &text)
             this->updateElidedText(this->getFontMetrics(),
                                    this->textRect().width());
         }
-        if (this->markdownEnabled_ && this->markdownDocument_)
-        {
-            this->markdownDocument_->setMarkdown(text);
-        }
         this->updateSize();
         this->update();
     }

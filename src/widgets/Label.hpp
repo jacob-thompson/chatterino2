@@ -4,10 +4,8 @@
 #include "widgets/BaseWidget.hpp"
 
 #include <pajlada/signals/signalholder.hpp>
-#include <memory>
 
 class QFontMetricsF;
-class QTextDocument;
 
 namespace chatterino {
 
