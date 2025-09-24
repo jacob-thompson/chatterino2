@@ -150,32 +150,35 @@ void Label::paintEvent(QPaintEvent * /*event*/)
     // draw text
     QRectF textRect = this->textRect();
 
-    if (this->markdownEnabled_ && this->markdownDocument_ && !this->text_.isEmpty())
+    if (this->markdownEnabled_ && this->markdownDocument_ &&
+        !this->text_.isEmpty())
     {
         // Render Markdown using QTextDocument
         painter.setBrush(this->palette().windowText());
-        
+
         // Set document width and font
         this->markdownDocument_->setTextWidth(textRect.width());
         this->markdownDocument_->setDefaultFont(
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
-        
+
         // Set text color to match palette
         QString colorName = this->palette().windowText().color().name();
         this->markdownDocument_->setDefaultStyleSheet(
-            QString("body { color: %1; } p { margin: 0; } h1, h2, h3, h4, h5, h6 { margin: 0; }")
+            QString("body { color: %1; } p { margin: 0; } h1, h2, h3, h4, h5, "
+                    "h6 { margin: 0; }")
                 .arg(colorName));
-        
+
         // Ensure the document content is up to date
         this->markdownDocument_->setMarkdown(this->text_);
-        
+
         // Save painter state and translate to text rect position
         painter.save();
         painter.translate(textRect.topLeft());
-        
+
         // Draw the document
-        this->markdownDocument_->drawContents(&painter, QRectF(0, 0, textRect.width(), textRect.height()));
-        
+        this->markdownDocument_->drawContents(
+            &painter, QRectF(0, 0, textRect.width(), textRect.height()));
+
         painter.restore();
     }
     else
@@ -243,25 +246,28 @@ void Label::updateSize()
 
     auto yPadding =
         this->currentPadding_.top() + this->currentPadding_.bottom();
-    
-    if (this->markdownEnabled_ && this->markdownDocument_ && !this->text_.isEmpty())
+
+    if (this->markdownEnabled_ && this->markdownDocument_ &&
+        !this->text_.isEmpty())
     {
         // Size based on Markdown document
         this->markdownDocument_->setDefaultFont(
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
-        
+
         // Ensure markdown content is set
         this->markdownDocument_->setMarkdown(this->text_);
-        
+
         // Use word wrap width if enabled, otherwise use a reasonable default
-        qreal testWidth = this->wordWrap_ ? 400.0 * this->scale() : this->markdownDocument_->idealWidth();
+        qreal testWidth = this->wordWrap_
+                              ? 400.0 * this->scale()
+                              : this->markdownDocument_->idealWidth();
         this->markdownDocument_->setTextWidth(testWidth);
-        
+
         auto height = this->markdownDocument_->size().height() + yPadding;
         auto width = qMin(this->markdownDocument_->idealWidth(), testWidth) +
                      this->currentPadding_.left() +
                      this->currentPadding_.right();
-        
+
         this->sizeHint_ = QSizeF(width, height).toSize();
         this->minimumSizeHint_ = this->sizeHint_;
     }
