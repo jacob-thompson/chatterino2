@@ -40,6 +40,9 @@ public:
     bool getMarkdownEnabled() const;
     void setMarkdownEnabled(bool enabled);
 
+    /// Sets text, supporting both plain text and HTML based on markdown setting
+    void setTextOrHtml(const QString &text);
+
 protected:
     void scaleChangedEvent(float scale_) override;
     void paintEvent(QPaintEvent *) override;
@@ -51,6 +54,9 @@ protected:
 private:
     void updateSize();
     QRectF textRect() const;
+    
+    /// Convert markdown text to HTML
+    QString markdownToHtml(const QString &markdown) const;
 
     /// Returns the current font style's font metric based on the current scale.
     QFontMetricsF getFontMetrics() const;
@@ -78,9 +84,6 @@ private:
     QString elidedText_;
 
     pajlada::Signals::SignalHolder connections_;
-
-    /// QTextDocument for Markdown rendering, created only when needed
-    mutable std::unique_ptr<QTextDocument> markdownDocument_;
 };
 
 }  // namespace chatterino
