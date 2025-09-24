@@ -1,10 +1,12 @@
 #include "EditUserNotesDialog.hpp"
 
+#include "singletons/Settings.hpp"
 #include "singletons/Theme.hpp"
 #include "util/LayoutCreator.hpp"
 #include "widgets/Label.hpp"
 
 #include <QCheckBox>
+#include <QCloseEvent>
 #include <QDialogButtonBox>
 #include <QSplitter>
 #include <QTextEdit>
@@ -15,7 +17,6 @@ EditUserNotesDialog::EditUserNotesDialog(QWidget *parent)
     : BasePopup(
           {
               BaseWindow::EnableCustomFrame,
-              BaseWindow::DisableLayoutSave,
               BaseWindow::BoundsCheckOnShow,
           },
           parent)
@@ -38,8 +39,28 @@ EditUserNotesDialog::EditUserNotesDialog(QWidget *parent)
     preview->setWordWrap(true);
     preview->setPadding(QMargins(10, 10, 10, 10));
 
-    this->splitter_->setSizes({350, 350});
-    this->previewLabel_->setVisible(false);
+    // Restore splitter sizes and preview visibility from settings
+    auto &settings = getSettings()->editUserNotesDialog;
+    bool showPreview = settings.showMarkdownPreview;
+    auto sizes = settings.splitterSizes.getValue();
+    
+    // Ensure we have valid sizes
+    if (sizes.size() != 2 || (sizes[0] <= 0 && sizes[1] <= 0))
+    {
+        sizes = {350, 350};
+    }
+    
+    this->previewCheckBox_->setChecked(showPreview);
+    this->previewLabel_->setVisible(showPreview);
+    
+    if (showPreview)
+    {
+        this->splitter_->setSizes(sizes);
+    }
+    else
+    {
+        this->splitter_->setSizes({700, 0});
+    }
 
     layout
         .emplace<QDialogButtonBox>(QDialogButtonBox::Ok |
@@ -56,14 +77,36 @@ EditUserNotesDialog::EditUserNotesDialog(QWidget *parent)
     // Connect preview toggle
     QObject::connect(this->previewCheckBox_, &QCheckBox::toggled, this,
                      [this](bool checked) {
+                         auto &settings = getSettings()->editUserNotesDialog;
+                         settings.showMarkdownPreview = checked;
+                         
                          this->previewLabel_->setVisible(checked);
                          if (checked)
                          {
                              this->updatePreview();
-                             this->splitter_->setSizes({350, 350});
+                             // Restore saved splitter sizes or use defaults
+                             auto sizes = settings.splitterSizes.getValue();
+                             if (sizes.size() == 2 && sizes[0] > 0 && sizes[1] > 0)
+                             {
+                                 this->splitter_->setSizes(sizes);
+                             }
+                             else
+                             {
+                                 this->splitter_->setSizes({350, 350});
+                             }
                          }
                          else
                          {
+                             // Save current splitter sizes before hiding
+                             if (this->previewLabel_->isVisible())
+                             {
+                                 auto currentSizes = this->splitter_->sizes();
+                                 if (currentSizes.size() == 2)
+                                 {
+                                     std::vector<int> sizesVec = {currentSizes[0], currentSizes[1]};
+                                     settings.splitterSizes = sizesVec;
+                                 }
+                             }
                              this->splitter_->setSizes({700, 0});
                          }
                      });
@@ -76,7 +119,18 @@ EditUserNotesDialog::EditUserNotesDialog(QWidget *parent)
         }
     });
 
+    // Save splitter sizes when user drags the splitter
+    QObject::connect(this->splitter_, &QSplitter::splitterMoved, this, [this] {
+        this->saveSplitterSizes();
+    });
+
     this->themeChangedEvent();
+}
+
+void EditUserNotesDialog::closeEvent(QCloseEvent *event)
+{
+    this->saveSplitterSizes();
+    BasePopup::closeEvent(event);
 }
 
 void EditUserNotesDialog::setNotes(const QString &notes)
@@ -136,6 +190,19 @@ void EditUserNotesDialog::updatePreview()
         else
         {
             this->previewLabel_->setText(text);
+        }
+    }
+}
+
+void EditUserNotesDialog::saveSplitterSizes()
+{
+    if (this->previewCheckBox_->isChecked() && this->previewLabel_->isVisible())
+    {
+        auto sizes = this->splitter_->sizes();
+        if (sizes.size() == 2 && sizes[0] > 0 && sizes[1] > 0)
+        {
+            std::vector<int> sizesVec = {sizes[0], sizes[1]};
+            getSettings()->editUserNotesDialog.splitterSizes = sizesVec;
         }
     }
 }
