@@ -690,11 +690,6 @@ public:
     BoolSetting showSendButton = {"/ui/showSendButton", false};
 
     struct {
-        BoolSetting showMarkdownPreview = {"/ui/editUserNotesDialog/showMarkdownPreview", false};
-        ChatterinoSetting<std::vector<int>> splitterSizes = {"/ui/editUserNotesDialog/splitterSizes", {350, 350}};
-    } editUserNotesDialog;
-
-    struct {
         // this isn't shown in the UI
         BoolSetting enabled = {"/plugins/repl/enabled", false};
         // An empty string implies the default monospace font

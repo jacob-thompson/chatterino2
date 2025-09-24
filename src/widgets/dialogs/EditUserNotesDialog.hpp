@@ -26,11 +26,9 @@ public:
 protected:
     void showEvent(QShowEvent *event) override;
     void themeChangedEvent() override;
-    void closeEvent(QCloseEvent *event) override;
 
 private:
     void updatePreview();
-    void saveSplitterSizes();
 
     QTextEdit *textEdit_{};
     QCheckBox *previewCheckBox_{};
