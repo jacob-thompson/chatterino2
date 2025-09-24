@@ -35,6 +35,5 @@ private:
     QSplitter *splitter_{};
     Label *previewLabel_{};
 };
-};
 
 }  // namespace chatterino
