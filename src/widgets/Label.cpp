@@ -3,6 +3,7 @@
 #include "Application.hpp"
 
 #include <QPainter>
+#include <QTextDocument>
 
 namespace chatterino {
 
@@ -38,6 +39,10 @@ void Label::setText(const QString &text)
         {
             this->updateElidedText(this->getFontMetrics(),
                                    this->textRect().width());
+        }
+        if (this->markdownEnabled_ && this->markdownDocument_)
+        {
+            this->markdownDocument_->setMarkdown(text);
         }
         this->updateSize();
         this->update();
@@ -84,6 +89,30 @@ void Label::setShouldElide(bool shouldElide)
     this->update();
 }
 
+bool Label::getMarkdownEnabled() const
+{
+    return this->markdownEnabled_;
+}
+
+void Label::setMarkdownEnabled(bool enabled)
+{
+    this->markdownEnabled_ = enabled;
+    if (enabled)
+    {
+        if (!this->markdownDocument_)
+        {
+            this->markdownDocument_ = std::make_unique<QTextDocument>();
+        }
+        this->markdownDocument_->setMarkdown(this->text_);
+    }
+    else
+    {
+        this->markdownDocument_.reset();
+    }
+    this->updateSize();
+    this->update();
+}
+
 void Label::setFontStyle(FontStyle style)
 {
     this->fontStyle_ = style;
@@ -117,32 +146,60 @@ void Label::paintEvent(QPaintEvent * /*event*/)
     // draw text
     QRectF textRect = this->textRect();
 
-    auto text = [this] {
-        if (this->shouldElide_)
-        {
-            return this->elidedText_;
-        }
-
-        return this->text_;
-    }();
-
-    qreal width = metrics.horizontalAdvance(text);
-    Qt::Alignment alignment = !this->centered_ || width > textRect.width()
-                                  ? Qt::AlignLeft | Qt::AlignVCenter
-                                  : Qt::AlignCenter;
-
-    painter.setBrush(this->palette().windowText());
-
-    QTextOption option(alignment);
-    if (this->wordWrap_)
+    if (this->markdownEnabled_ && this->markdownDocument_)
     {
-        option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+        // Render Markdown using QTextDocument
+        painter.setBrush(this->palette().windowText());
+        
+        // Set document width and font
+        this->markdownDocument_->setTextWidth(textRect.width());
+        this->markdownDocument_->setDefaultFont(
+            getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
+        
+        // Set text color to match palette
+        this->markdownDocument_->setDefaultStyleSheet(
+            QString("body { color: %1; }")
+                .arg(this->palette().windowText().color().name()));
+        
+        // Save painter state and translate to text rect position
+        painter.save();
+        painter.translate(textRect.topLeft());
+        
+        // Draw the document
+        this->markdownDocument_->drawContents(&painter, QRectF(0, 0, textRect.width(), textRect.height()));
+        
+        painter.restore();
     }
     else
     {
-        option.setWrapMode(QTextOption::NoWrap);
+        // Original text rendering code
+        auto text = [this] {
+            if (this->shouldElide_)
+            {
+                return this->elidedText_;
+            }
+
+            return this->text_;
+        }();
+
+        qreal width = metrics.horizontalAdvance(text);
+        Qt::Alignment alignment = !this->centered_ || width > textRect.width()
+                                      ? Qt::AlignLeft | Qt::AlignVCenter
+                                      : Qt::AlignCenter;
+
+        painter.setBrush(this->palette().windowText());
+
+        QTextOption option(alignment);
+        if (this->wordWrap_)
+        {
+            option.setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+        }
+        else
+        {
+            option.setWrapMode(QTextOption::NoWrap);
+        }
+        painter.drawText(textRect, text, option);
     }
-    painter.drawText(textRect, text, option);
 
 #if 0
     painter.setPen(QColor(255, 0, 0));
@@ -178,20 +235,43 @@ void Label::updateSize()
 
     auto yPadding =
         this->currentPadding_.top() + this->currentPadding_.bottom();
-    auto height = metrics.height() + yPadding;
-    if (this->shouldElide_)
+    
+    if (this->markdownEnabled_ && this->markdownDocument_)
     {
-        this->updateElidedText(metrics, this->textRect().width());
-        this->sizeHint_ = QSizeF(-1, height).toSize();
+        // Size based on Markdown document
+        this->markdownDocument_->setDefaultFont(
+            getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
+        
+        // For now, use a reasonable width to calculate height
+        qreal testWidth = 400.0 * this->scale();
+        this->markdownDocument_->setTextWidth(testWidth);
+        
+        auto height = this->markdownDocument_->size().height() + yPadding;
+        auto width = this->markdownDocument_->idealWidth() +
+                     this->currentPadding_.left() +
+                     this->currentPadding_.right();
+        
+        this->sizeHint_ = QSizeF(width, height).toSize();
         this->minimumSizeHint_ = this->sizeHint_;
     }
     else
     {
-        auto width = metrics.horizontalAdvance(this->text_) +
-                     this->currentPadding_.left() +
-                     this->currentPadding_.right();
-        this->sizeHint_ = QSizeF(width, height).toSize();
-        this->minimumSizeHint_ = this->sizeHint_;
+        // Original sizing logic
+        auto height = metrics.height() + yPadding;
+        if (this->shouldElide_)
+        {
+            this->updateElidedText(metrics, this->textRect().width());
+            this->sizeHint_ = QSizeF(-1, height).toSize();
+            this->minimumSizeHint_ = this->sizeHint_;
+        }
+        else
+        {
+            auto width = metrics.horizontalAdvance(this->text_) +
+                         this->currentPadding_.left() +
+                         this->currentPadding_.right();
+            this->sizeHint_ = QSizeF(width, height).toSize();
+            this->minimumSizeHint_ = this->sizeHint_;
+        }
     }
 
     this->updateGeometry();

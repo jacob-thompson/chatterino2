@@ -4,8 +4,10 @@
 #include "widgets/BaseWidget.hpp"
 
 #include <pajlada/signals/signalholder.hpp>
+#include <memory>
 
 class QFontMetricsF;
+class QTextDocument;
 
 namespace chatterino {
 
@@ -34,6 +36,9 @@ public:
     /// Sets whether the text should elide if there's not enough room to
     /// render the current text.
     void setShouldElide(bool shouldElide);
+
+    bool getMarkdownEnabled() const;
+    void setMarkdownEnabled(bool enabled);
 
 protected:
     void scaleChangedEvent(float scale_) override;
@@ -68,10 +73,14 @@ private:
     bool centered_ = false;
     bool wordWrap_ = false;
     bool shouldElide_ = false;
+    bool markdownEnabled_ = false;
     /// The text, but elided. Only set if shouldElide_ is true
     QString elidedText_;
 
     pajlada::Signals::SignalHolder connections_;
+
+    /// QTextDocument for Markdown rendering, created only when needed
+    mutable std::unique_ptr<QTextDocument> markdownDocument_;
 };
 
 }  // namespace chatterino

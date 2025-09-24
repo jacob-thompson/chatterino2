@@ -501,6 +501,7 @@ UserInfoPopup::UserInfoPopup(bool closeAutomatically, Split *split)
     auto notesPreview = layout.emplace<Label>().assign(&ui_.notesPreview);
     notesPreview->setVisible(false);
     notesPreview->setShouldElide(true);
+    notesPreview->setMarkdownEnabled(true);
 
     auto lineMod = layout.emplace<Line>(false);
 
@@ -1188,11 +1189,8 @@ void UserInfoPopup::updateNotes()
         return;
     }
 
-    static QRegularExpression spaceRegex{"\\s+"};
-
-    auto previewText = "Notes: " + userData->notes.replace(spaceRegex, " ");
-
-    this->ui_.notesPreview->setText(previewText);
+    // Set the user notes directly for Markdown rendering
+    this->ui_.notesPreview->setText(userData->notes);
     this->ui_.notesPreview->setVisible(true);
 }
 
