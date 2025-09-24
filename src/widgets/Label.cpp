@@ -4,7 +4,6 @@
 
 #include <QPainter>
 #include <QTextDocument>
-#include <QRegExp>
 
 namespace chatterino {
 
@@ -40,6 +39,10 @@ void Label::setText(const QString &text)
         {
             this->updateElidedText(this->getFontMetrics(),
                                    this->textRect().width());
+        }
+        if (this->markdownEnabled_ && this->markdownDocument_)
+        {
+            this->markdownDocument_->setMarkdown(text);
         }
         this->updateSize();
         this->update();
@@ -94,49 +97,24 @@ bool Label::getMarkdownEnabled() const
 void Label::setMarkdownEnabled(bool enabled)
 {
     this->markdownEnabled_ = enabled;
-    this->updateSize();
-    this->update();
-}
-
-void Label::setTextOrHtml(const QString &text)
-{
-    if (this->markdownEnabled_)
+    if (enabled)
     {
-        // Convert markdown to HTML and set it
-        QString html = this->markdownToHtml(text);
-        this->setText(html);
+        if (!this->markdownDocument_)
+        {
+            this->markdownDocument_ = std::make_unique<QTextDocument>();
+        }
+        // Always set the current text to the document
+        if (!this->text_.isEmpty())
+        {
+            this->markdownDocument_->setMarkdown(this->text_);
+        }
     }
     else
     {
-        // Set plain text normally
-        this->setText(text);
+        this->markdownDocument_.reset();
     }
-}
-
-QString Label::markdownToHtml(const QString &markdown) const
-{
-    if (markdown.isEmpty())
-    {
-        return QString();
-    }
-    
-    // Create a temporary QTextDocument to convert markdown to HTML
-    QTextDocument tempDoc;
-    tempDoc.setMarkdown(markdown);
-    
-    // Get the HTML representation
-    QString html = tempDoc.toHtml();
-    
-    // Clean up the HTML to remove unnecessary tags and styling
-    // Remove document structure tags and keep only the content
-    QRegExp bodyRegex("<body[^>]*>(.*)</body>", Qt::CaseInsensitive);
-    bodyRegex.setMinimal(true);
-    if (bodyRegex.indexIn(html) != -1)
-    {
-        html = bodyRegex.cap(1);
-    }
-    
-    return html;
+    this->updateSize();
+    this->update();
 }
 
 void Label::setFontStyle(FontStyle style)
@@ -172,34 +150,37 @@ void Label::paintEvent(QPaintEvent * /*event*/)
     // draw text
     QRectF textRect = this->textRect();
 
-    if (this->markdownEnabled_ && !this->text_.isEmpty())
+    if (this->markdownEnabled_ && this->markdownDocument_ && !this->text_.isEmpty())
     {
-        // Use QTextDocument to render HTML (converted from markdown)
-        QTextDocument doc;
-        doc.setDefaultFont(getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
-        doc.setTextWidth(textRect.width());
+        // Render Markdown using QTextDocument
+        painter.setBrush(this->palette().windowText());
         
-        // Set HTML content (assuming text_ contains HTML converted from markdown)
-        doc.setHtml(this->text_);
+        // Set document width and font
+        this->markdownDocument_->setTextWidth(textRect.width());
+        this->markdownDocument_->setDefaultFont(
+            getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
         
         // Set text color to match palette
         QString colorName = this->palette().windowText().color().name();
-        doc.setDefaultStyleSheet(
-            QString("body { color: %1; margin: 0; padding: 0; } p { margin: 0; } h1, h2, h3, h4, h5, h6 { margin: 0; }")
+        this->markdownDocument_->setDefaultStyleSheet(
+            QString("body { color: %1; } p { margin: 0; } h1, h2, h3, h4, h5, h6 { margin: 0; }")
                 .arg(colorName));
+        
+        // Ensure the document content is up to date
+        this->markdownDocument_->setMarkdown(this->text_);
         
         // Save painter state and translate to text rect position
         painter.save();
         painter.translate(textRect.topLeft());
         
         // Draw the document
-        doc.drawContents(&painter, QRectF(0, 0, textRect.width(), textRect.height()));
+        this->markdownDocument_->drawContents(&painter, QRectF(0, 0, textRect.width(), textRect.height()));
         
         painter.restore();
     }
     else
     {
-        // Original text rendering code for plain text
+        // Original text rendering code
         auto text = [this] {
             if (this->shouldElide_)
             {
@@ -225,7 +206,6 @@ void Label::paintEvent(QPaintEvent * /*event*/)
         {
             option.setWrapMode(QTextOption::NoWrap);
         }
-        
         painter.drawText(textRect, text, option);
     }
 
@@ -264,19 +244,21 @@ void Label::updateSize()
     auto yPadding =
         this->currentPadding_.top() + this->currentPadding_.bottom();
     
-    if (this->markdownEnabled_ && !this->text_.isEmpty())
+    if (this->markdownEnabled_ && this->markdownDocument_ && !this->text_.isEmpty())
     {
-        // Size based on HTML content using QTextDocument
-        QTextDocument doc;
-        doc.setDefaultFont(getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
-        doc.setHtml(this->text_);
+        // Size based on Markdown document
+        this->markdownDocument_->setDefaultFont(
+            getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
+        
+        // Ensure markdown content is set
+        this->markdownDocument_->setMarkdown(this->text_);
         
         // Use word wrap width if enabled, otherwise use a reasonable default
-        qreal testWidth = this->wordWrap_ ? 400.0 * this->scale() : doc.idealWidth();
-        doc.setTextWidth(testWidth);
+        qreal testWidth = this->wordWrap_ ? 400.0 * this->scale() : this->markdownDocument_->idealWidth();
+        this->markdownDocument_->setTextWidth(testWidth);
         
-        auto height = doc.size().height() + yPadding;
-        auto width = qMin(doc.idealWidth(), testWidth) +
+        auto height = this->markdownDocument_->size().height() + yPadding;
+        auto width = qMin(this->markdownDocument_->idealWidth(), testWidth) +
                      this->currentPadding_.left() +
                      this->currentPadding_.right();
         
@@ -285,7 +267,7 @@ void Label::updateSize()
     }
     else
     {
-        // Original sizing logic for plain text
+        // Original sizing logic
         auto height = metrics.height() + yPadding;
         if (this->shouldElide_)
         {

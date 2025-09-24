@@ -142,8 +142,8 @@ void EditUserNotesDialog::updatePreview()
         }
         else
         {
-            // Use setTextOrHtml to convert markdown to HTML and display it
-            this->previewLabel_->setTextOrHtml(text);
+            // Set the markdown text directly - Label handles rendering internally
+            this->previewLabel_->setText(text);
         }
     }
 }
