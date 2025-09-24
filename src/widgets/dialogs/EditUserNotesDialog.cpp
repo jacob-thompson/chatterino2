@@ -77,11 +77,11 @@ EditUserNotesDialog::EditUserNotesDialog(QWidget *parent)
 
     // Connect text changes to preview update
     QObject::connect(this->textEdit_, &QTextEdit::textChanged, this, [this] {
-                         if (this->previewCheckBox_->isChecked())
-                         {
-                             this->updatePreview();
-                         }
-                     });
+        if (this->previewCheckBox_->isChecked())
+        {
+            this->updatePreview();
+        }
+    });
 
     this->themeChangedEvent();
 }
