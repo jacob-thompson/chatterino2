@@ -25,27 +25,20 @@ EditUserNotesDialog::EditUserNotesDialog(QWidget *parent)
     auto layout = LayoutCreator<QWidget>(this->getLayoutContainer())
                       .setLayoutType<QVBoxLayout>();
 
-    // Add preview toggle checkbox
     auto previewCheckBox = layout.emplace<QCheckBox>("Show Markdown Preview")
                                .assign(&this->previewCheckBox_);
 
-    // Create splitter for side-by-side view
     auto splitter =
         layout.emplace<QSplitter>(Qt::Horizontal).assign(&this->splitter_);
 
-    // Text editor on the left
     auto edit = splitter.emplace<QTextEdit>().assign(&this->textEdit_);
 
-    // Preview label on the right
     auto preview = splitter.emplace<Label>().assign(&this->previewLabel_);
     preview->setMarkdownEnabled(true);
     preview->setWordWrap(true);
     preview->setPadding(QMargins(10, 10, 10, 10));
 
-    // Set equal sizes initially
     this->splitter_->setSizes({350, 350});
-
-    // Initially hide preview
     this->previewLabel_->setVisible(false);
 
     layout
@@ -142,7 +135,6 @@ void EditUserNotesDialog::updatePreview()
         }
         else
         {
-            // Set the markdown text directly - Label handles rendering internally
             this->previewLabel_->setText(text);
         }
     }

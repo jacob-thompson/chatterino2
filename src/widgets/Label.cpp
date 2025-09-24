@@ -103,7 +103,6 @@ void Label::setMarkdownEnabled(bool enabled)
         {
             this->markdownDocument_ = std::make_unique<QTextDocument>();
         }
-        // Always set the current text to the document
         if (!this->text_.isEmpty())
         {
             this->markdownDocument_->setMarkdown(this->text_);
@@ -153,29 +152,23 @@ void Label::paintEvent(QPaintEvent * /*event*/)
     if (this->markdownEnabled_ && this->markdownDocument_ &&
         !this->text_.isEmpty())
     {
-        // Render Markdown using QTextDocument
         painter.setBrush(this->palette().windowText());
 
-        // Set document width and font
         this->markdownDocument_->setTextWidth(textRect.width());
         this->markdownDocument_->setDefaultFont(
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
 
-        // Set text color to match palette
         QString colorName = this->palette().windowText().color().name();
         this->markdownDocument_->setDefaultStyleSheet(
             QString("body { color: %1; } p { margin: 0; } h1, h2, h3, h4, h5, "
                     "h6 { margin: 0; }")
                 .arg(colorName));
 
-        // Ensure the document content is up to date
         this->markdownDocument_->setMarkdown(this->text_);
 
-        // Save painter state and translate to text rect position
         painter.save();
         painter.translate(textRect.topLeft());
 
-        // Draw the document
         this->markdownDocument_->drawContents(
             &painter, QRectF(0, 0, textRect.width(), textRect.height()));
 
@@ -183,7 +176,6 @@ void Label::paintEvent(QPaintEvent * /*event*/)
     }
     else
     {
-        // Original text rendering code
         auto text = [this] {
             if (this->shouldElide_)
             {

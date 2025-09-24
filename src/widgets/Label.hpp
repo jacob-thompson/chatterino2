@@ -80,7 +80,6 @@ private:
 
     pajlada::Signals::SignalHolder connections_;
 
-    /// QTextDocument for Markdown rendering, created only when needed
     mutable std::unique_ptr<QTextDocument> markdownDocument_;
 };
 

@@ -1189,7 +1189,6 @@ void UserInfoPopup::updateNotes()
         return;
     }
 
-    // Set the user notes directly for Markdown rendering
     this->ui_.notesPreview->setText(userData->notes);
     this->ui_.notesPreview->setVisible(true);
 }
