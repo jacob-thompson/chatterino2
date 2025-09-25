@@ -3443,45 +3443,53 @@ ChannelView::ChannelViewID ChannelView::getID() const
 
 void ChannelView::toggleDeletedMessage(const QString &messageId)
 {
-    // Toggle the state
+    // Toggle the expanded state
     IrcMessageHandler::toggleDeletedMessageState(messageId);
     
-    // Get the original message
-    auto originalMessage = IrcMessageHandler::getOriginalDeletedMessage(messageId);
-    if (!originalMessage)
-    {
-        // No original message found, just scroll to the current location
-        this->scrollToMessageId(messageId);
-        return;
-    }
-    
-    // Get the channel to replace the message
+    // Get the channel
     auto channel = this->underlyingChannel_;
     if (!channel)
     {
         return;
     }
     
-    // Determine what message to show based on current state
-    MessagePtr messageToShow;
-    if (IrcMessageHandler::isDeletedMessageExpanded(messageId))
-    {
-        // Show original message (but keep it marked as disabled for greyed out appearance)
-        messageToShow = originalMessage;
-    }
-    else
-    {
-        // Show clickable version
-        messageToShow = MessageBuilder::makeDeletionHyperlinkMessage(originalMessage);
-    }
-    
-    // Find and replace the current message by searching through the message snapshot
+    // Find the message in the channel and replace it
     auto messages = channel->getMessageSnapshot();
     for (size_t i = 0; i < messages.size(); ++i)
     {
-        if (messages[i]->id == messageId)
+        const auto &message = messages[i];
+        if (message->id == messageId)
         {
-            channel->replaceMessage(i, messageToShow);
+            // Create replacement message based on current state
+            MessagePtr replacement;
+            if (IrcMessageHandler::isDeletedMessageExpanded(messageId))
+            {
+                // Show original content - create a copy of the original but keep it marked as disabled
+                // For now, just get the original stored message
+                auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
+                if (original)
+                {
+                    replacement = original;
+                }
+                else
+                {
+                    // Fallback: create a grayed out version
+                    auto builder = MessageBuilder();
+                    builder.emplace<TimestampElement>();
+                    builder.emplace<TextElement>(message->displayName + ": [original message content]", 
+                                               MessageElementFlag::Text, MessageColor::Text);
+                    builder.message().flags.set(MessageFlag::Disabled);
+                    builder.message().id = messageId;
+                    replacement = builder.release();
+                }
+            }
+            else
+            {
+                // Show clickable version - use the current message since it should already be clickable format
+                replacement = message;
+            }
+            
+            channel->replaceMessage(i, replacement);
             break;
         }
     }
