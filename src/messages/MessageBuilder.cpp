@@ -1290,7 +1290,7 @@ MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
     // Create a simple hyperlink saying "Message deleted"
     builder
         .emplace<TextElement>("Message deleted", MessageElementFlag::Text,
-                              MessageColor::Link, FontStyle::ChatMedium)
+                              MessageColor(MessageColor::Link), FontStyle::ChatMedium)
         ->setLink({Link::JumpToMessage, originalMessage->id});
     builder.message().timeoutUser = "msg:" + originalMessage->id;
 
