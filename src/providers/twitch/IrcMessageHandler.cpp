@@ -562,7 +562,8 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
         // Store the original message for toggle functionality
         originalDeletedMessages[msg->id] = msg;
 
-        auto deletionClickable = MessageBuilder::makeDeletionClickableMessage(msg);
+        auto deletionClickable =
+            MessageBuilder::makeDeletionClickableMessage(msg);
         chan->replaceMessage(msg, deletionClickable);
     }
     else
@@ -1189,7 +1190,8 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
 }
 
 // Implementation of deleted message toggle helper functions
-MessagePtr IrcMessageHandler::getOriginalDeletedMessage(const QString &messageId)
+MessagePtr IrcMessageHandler::getOriginalDeletedMessage(
+    const QString &messageId)
 {
     auto it = originalDeletedMessages.find(messageId);
     return (it != originalDeletedMessages.end()) ? it->second : nullptr;

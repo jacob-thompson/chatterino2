@@ -21,10 +21,10 @@
 #include "providers/colors/ColorProvider.hpp"
 #include "providers/links/LinkInfo.hpp"
 #include "providers/links/LinkResolver.hpp"
+#include "providers/twitch/IrcMessageHandler.hpp"
 #include "providers/twitch/TwitchAccount.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
 #include "providers/twitch/TwitchIrcServer.hpp"
-#include "providers/twitch/IrcMessageHandler.hpp"
 #include "singletons/Resources.hpp"
 #include "singletons/Settings.hpp"
 #include "singletons/StreamerMode.hpp"
@@ -3445,14 +3445,14 @@ void ChannelView::toggleDeletedMessage(const QString &messageId)
 {
     // Toggle the expanded state
     IrcMessageHandler::toggleDeletedMessageState(messageId);
-    
+
     // Get the channel
     auto channel = this->underlyingChannel_;
     if (!channel)
     {
         return;
     }
-    
+
     // Find the message in the channel and replace it
     auto messages = channel->getMessageSnapshot();
     for (size_t i = 0; i < messages.size(); ++i)
@@ -3465,7 +3465,8 @@ void ChannelView::toggleDeletedMessage(const QString &messageId)
             if (IrcMessageHandler::isDeletedMessageExpanded(messageId))
             {
                 // Show original content (grayed out due to Disabled flag)
-                auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
+                auto original =
+                    IrcMessageHandler::getOriginalDeletedMessage(messageId);
                 if (original)
                 {
                     replacement = original;
@@ -3475,8 +3476,9 @@ void ChannelView::toggleDeletedMessage(const QString &messageId)
                     // Fallback: create a grayed out version
                     auto builder = MessageBuilder();
                     builder.emplace<TimestampElement>();
-                    builder.emplace<TextElement>(message->displayName + ": [original message content]", 
-                                               MessageElementFlag::Text, MessageColor::Text);
+                    builder.emplace<TextElement>(
+                        message->displayName + ": [original message content]",
+                        MessageElementFlag::Text, MessageColor::Text);
                     builder.message().flags.set(MessageFlag::Disabled);
                     builder.message().id = messageId;
                     replacement = builder.release();
@@ -3485,15 +3487,18 @@ void ChannelView::toggleDeletedMessage(const QString &messageId)
             else
             {
                 // Show clickable version - always create a fresh clickable message
-                auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
+                auto original =
+                    IrcMessageHandler::getOriginalDeletedMessage(messageId);
                 if (original)
                 {
-                    replacement = MessageBuilder::makeDeletionClickableMessage(original);
+                    replacement =
+                        MessageBuilder::makeDeletionClickableMessage(original);
                 }
                 else
                 {
                     // Fallback: create clickable from current message info
-                    replacement = MessageBuilder::makeDeletionClickableMessage(message);
+                    replacement =
+                        MessageBuilder::makeDeletionClickableMessage(message);
                 }
             }
 

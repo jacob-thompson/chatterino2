@@ -1287,14 +1287,15 @@ MessagePtr MessageBuilder::makeDeletionClickableMessage(
     builder.message().flags.set(MessageFlag::DoNotTriggerNotification);
     builder.message().flags.set(MessageFlag::ModerationAction);
 
-    MessageColor usernameColor = originalMessage->usernameColor.isValid()
-        ? MessageColor(originalMessage->usernameColor)
-        : MessageColor::Text;
+    MessageColor usernameColor =
+        originalMessage->usernameColor.isValid()
+            ? MessageColor(originalMessage->usernameColor)
+            : MessageColor::Text;
 
     builder
         .emplace<TextElement>(originalMessage->displayName,
-                              MessageElementFlag::Username,
-                              usernameColor, FontStyle::ChatMediumBold)
+                              MessageElementFlag::Username, usernameColor,
+                              FontStyle::ChatMediumBold)
         ->setLink({Link::UserInfo, originalMessage->loginName});
 
     builder.emplace<TextElement>(": ", MessageElementFlag::Text,
@@ -1302,11 +1303,13 @@ MessagePtr MessageBuilder::makeDeletionClickableMessage(
 
     builder
         .emplace<TextElement>("<message deleted>", MessageElementFlag::Text,
-                              MessageColor(MessageColor::Link), FontStyle::ChatMedium)
+                              MessageColor(MessageColor::Link),
+                              FontStyle::ChatMedium)
         ->setLink({Link::ToggleDeletedMessage, originalMessage->id});
     builder.message().timeoutUser = "msg:" + originalMessage->id;
 
-    const auto deletionText = QString(originalMessage->displayName + ": <message deleted>");
+    const auto deletionText =
+        QString(originalMessage->displayName + ": <message deleted>");
     builder.message().messageText = deletionText;
     builder.message().searchText = deletionText;
 
