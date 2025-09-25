@@ -3442,9 +3442,14 @@ ChannelView::ChannelViewID ChannelView::getID() const
 
 void ChannelView::toggleDeletedMessage(const QString &messageId)
 {
-    // For now, just force a layout refresh
+    // For now, implement a basic version that just scrolls to the message
+    // This provides visual feedback that the click worked
+    this->scrollToMessageId(messageId);
+    
     // TODO: Implement proper toggle functionality
-    this->performLayout();
+    // - Store original message content
+    // - Track toggle state per message
+    // - Replace message with original/clickable as needed
 }
 
 }  // namespace chatterino
