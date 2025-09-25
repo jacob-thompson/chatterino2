@@ -1277,6 +1277,30 @@ MessagePtr MessageBuilder::makeDeletionMessageFromIRC(
     return builder.release();
 }
 
+MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
+    const MessagePtr &originalMessage)
+{
+    MessageBuilder builder;
+
+    builder.emplace<TimestampElement>();
+    builder.message().flags.set(MessageFlag::System);
+    builder.message().flags.set(MessageFlag::DoNotTriggerNotification);
+    builder.message().flags.set(MessageFlag::ModerationAction);
+
+    // Create a simple hyperlink saying "Message deleted"
+    builder
+        .emplace<TextElement>("Message deleted", MessageElementFlag::Text,
+                              MessageColor::Link, FontStyle::ChatMedium)
+        ->setLink({Link::JumpToMessage, originalMessage->id});
+    builder.message().timeoutUser = "msg:" + originalMessage->id;
+
+    const auto deletionText = QString("Message deleted");
+    builder.message().messageText = deletionText;
+    builder.message().searchText = deletionText;
+
+    return builder.release();
+}
+
 MessagePtr MessageBuilder::makeListOfUsersMessage(QString prefix,
                                                   QStringList users,
                                                   Channel *channel,

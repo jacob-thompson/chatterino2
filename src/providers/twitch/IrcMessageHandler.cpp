@@ -552,7 +552,16 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
         return;
     }
 
-    msg->flags.set(MessageFlag::Disabled);
+    if (getSettings()->showDeletedAsHyperlinks && !getSettings()->hideModerated)
+    {
+        // Replace the message with a hyperlink instead of just disabling it
+        auto deletionHyperlink = MessageBuilder::makeDeletionHyperlinkMessage(msg);
+        chan->replaceMessage(msg, deletionHyperlink);
+    }
+    else
+    {
+        msg->flags.set(MessageFlag::Disabled);
+    }
     msg->flags.set(MessageFlag::InvalidReplyTarget);
     if (!getSettings()->hideDeletionActions)
     {
