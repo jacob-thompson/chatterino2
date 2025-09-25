@@ -3153,7 +3153,9 @@ void ChannelView::handleLinkClick(QMouseEvent *event, const Link &link,
             this->scrollToMessageId(link.value);
         }
         break;
-
+        case Link::RevealDeletedMessage: {
+            this->revealDeletedMessage(link.value);
+        }
         break;
 
         default:;
@@ -3435,6 +3437,37 @@ void ChannelView::updateID()
 ChannelView::ChannelViewID ChannelView::getID() const
 {
     return this->id_;
+}
+
+}
+
+void ChannelView::revealDeletedMessage(const QString &messageId)
+{
+    auto channel = this->underlyingChannel_;
+    if (!channel)
+    {
+        return;
+    }
+
+    // Get the original message from storage
+    auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
+    if (!original)
+    {
+        return;
+    }
+
+    // Find the clickable message and replace it with the original
+    auto messages = channel->getMessageSnapshot();
+    for (size_t i = 0; i < messages.size(); ++i)
+    {
+        const auto &message = messages[i];
+        if (message->id == messageId)
+        {
+            // Replace with the original message (it will appear grayed out due to Disabled flag)
+            channel->replaceMessage(i, original);
+            break;
+        }
+    }
 }
 
 }  // namespace chatterino

@@ -32,10 +32,14 @@
 #include <QStringBuilder>
 
 #include <memory>
+#include <unordered_map>
 
 using namespace chatterino::literals;
 
 namespace chatterino {
+
+// Storage for original deleted messages to support reveal functionality
+static std::unordered_map<QString, MessagePtr> originalDeletedMessages;
 
 namespace {
 
@@ -552,8 +556,10 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
 
     if (getSettings()->showDeletedAsClickables && getSettings()->hideModerated)
     {
-        auto deletionClickable =
-            MessageBuilder::makeDeletionClickableMessage(msg);
+        // Store the original message so it can be revealed later
+        originalDeletedMessages[msg->id] = msg;
+        
+        auto deletionClickable = MessageBuilder::makeDeletionHyperlinkMessage(msg);
         chan->replaceMessage(msg, deletionClickable);
     }
     else
@@ -1177,6 +1183,14 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
         sink.addMessage(msg, MessageContext::Original);
         chan->addRecentChatter(msg->displayName);
     }
+}
+
+}
+
+MessagePtr IrcMessageHandler::getOriginalDeletedMessage(const QString &messageId)
+{
+    auto it = originalDeletedMessages.find(messageId);
+    return (it != originalDeletedMessages.end()) ? it->second : nullptr;
 }
 
 }  // namespace chatterino

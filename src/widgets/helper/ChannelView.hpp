@@ -284,6 +284,8 @@ private:
                          const MessagePtr &replacement);
     void messagesUpdated();
 
+    void revealDeletedMessage(const QString &messageId);
+
     void performLayout(bool causedByScrollbar = false,
                        bool causedByShow = false);
     void layoutVisibleMessages(

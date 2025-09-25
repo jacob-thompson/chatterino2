@@ -1305,7 +1305,7 @@ MessagePtr MessageBuilder::makeDeletionClickableMessage(
         .emplace<TextElement>("<message deleted>", MessageElementFlag::Text,
                               MessageColor(MessageColor::Link),
                               FontStyle::ChatMedium)
-        ->setLink({Link::JumpToMessage, originalMessage->id});
+        ->setLink({Link::RevealDeletedMessage, originalMessage->id});
     builder.message().timeoutUser = "msg:" + originalMessage->id;
 
     const auto deletionText =
