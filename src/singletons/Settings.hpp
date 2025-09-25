@@ -170,7 +170,7 @@ public:
     BoolSetting fadeMessageHistory = {"/appearance/messages/fadeMessageHistory",
                                       true};
     BoolSetting hideModerated = {"/appearance/messages/hideModerated", false};
-    BoolSetting showDeletedAsHyperlinks = {"/appearance/messages/showDeletedAsHyperlinks", false};
+    BoolSetting showDeletedAsClickables = {"/appearance/messages/showDeletedAsClickables", false};
     BoolSetting hideModerationActions = {
         "/appearance/messages/hideModerationActions", false};
     BoolSetting hideDeletionActions = {

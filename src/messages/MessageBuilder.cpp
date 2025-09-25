@@ -1277,7 +1277,7 @@ MessagePtr MessageBuilder::makeDeletionMessageFromIRC(
     return builder.release();
 }
 
-MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
+MessagePtr MessageBuilder::makeDeletionClickableMessage(
     const MessagePtr &originalMessage)
 {
     MessageBuilder builder;
@@ -1287,17 +1287,16 @@ MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
     builder.message().flags.set(MessageFlag::DoNotTriggerNotification);
     builder.message().flags.set(MessageFlag::ModerationAction);
 
-    // Add username with preserved color
-    MessageColor usernameColor = originalMessage->usernameColor.isValid() 
-        ? MessageColor(originalMessage->usernameColor) 
+    MessageColor usernameColor = originalMessage->usernameColor.isValid()
+        ? MessageColor(originalMessage->usernameColor)
         : MessageColor::Text;
-    
+
     builder
         .emplace<TextElement>(originalMessage->displayName,
                               MessageElementFlag::Username,
                               usernameColor, FontStyle::ChatMediumBold)
         ->setLink({Link::UserInfo, originalMessage->loginName});
-    
+
     builder.emplace<TextElement>(": ", MessageElementFlag::Text,
                                  MessageColor::Text);
 

@@ -557,12 +557,12 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
         return;
     }
 
-    if (getSettings()->showDeletedAsHyperlinks && getSettings()->hideModerated)
+    if (getSettings()->showDeletedAsClickables && getSettings()->hideModerated)
     {
         // Store the original message for toggle functionality
         originalDeletedMessages[msg->id] = msg;
-        
-        auto deletionClickable = MessageBuilder::makeDeletionHyperlinkMessage(msg);
+
+        auto deletionClickable = MessageBuilder::makeDeletionClickableMessage(msg);
         chan->replaceMessage(msg, deletionClickable);
     }
     else

@@ -3488,15 +3488,15 @@ void ChannelView::toggleDeletedMessage(const QString &messageId)
                 auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
                 if (original)
                 {
-                    replacement = MessageBuilder::makeDeletionHyperlinkMessage(original);
+                    replacement = MessageBuilder::makeDeletionClickableMessage(original);
                 }
                 else
                 {
                     // Fallback: create clickable from current message info
-                    replacement = MessageBuilder::makeDeletionHyperlinkMessage(message);
+                    replacement = MessageBuilder::makeDeletionClickableMessage(message);
                 }
             }
-            
+
             channel->replaceMessage(i, replacement);
             break;
         }
