@@ -64,7 +64,7 @@ public:
                            ITwitchIrcServer &twitch, bool isSub, bool isAction);
 
     static MessagePtr getOriginalDeletedMessage(const QString &messageId);
-    static void storeOriginalDeletedMessage(const QString &messageId, 
+    static void storeOriginalDeletedMessage(const QString &messageId,
                                            const MessagePtr &message);
     static void clearDeletedMessageStorage();
 

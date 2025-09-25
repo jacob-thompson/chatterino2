@@ -556,7 +556,8 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
         // Store the original message so it can be revealed later
         IrcMessageHandler::storeOriginalDeletedMessage(msg->id, msg);
 
-        auto deletionClickable = MessageBuilder::makeDeletionClickableMessage(msg);
+        auto deletionClickable =
+            MessageBuilder::makeDeletionClickableMessage(msg);
         chan->replaceMessage(msg, deletionClickable);
     }
     else
@@ -1182,31 +1183,32 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
     }
 }
 
-
 // Helper function to get the static storage for deleted messages
-static std::unordered_map<QString, MessagePtr>& getDeletedMessagesStorage()
+static std::unordered_map<QString, MessagePtr>
+&getDeletedMessagesStorage()
 {
     static std::unordered_map<QString, MessagePtr> originalDeletedMessages;
     return originalDeletedMessages;
 }
 
-MessagePtr IrcMessageHandler::getOriginalDeletedMessage(const QString &messageId)
+MessagePtr IrcMessageHandler::getOriginalDeletedMessage(
+    const QString &messageId)
 {
-    auto& storage = getDeletedMessagesStorage();
+    auto &storage = getDeletedMessagesStorage();
     auto it = storage.find(messageId);
     return (it != storage.end()) ? it->second : nullptr;
 }
 
-void IrcMessageHandler::storeOriginalDeletedMessage(const QString &messageId, 
+void IrcMessageHandler::storeOriginalDeletedMessage(const QString &messageId,
                                                    const MessagePtr &message)
 {
-    auto& storage = getDeletedMessagesStorage();
+    auto &storage = getDeletedMessagesStorage();
     storage[messageId] = message;
 }
 
 void IrcMessageHandler::clearDeletedMessageStorage()
 {
-    auto& storage = getDeletedMessagesStorage();
+    auto &storage = getDeletedMessagesStorage();
     storage.clear();
 }
 
