@@ -32,8 +32,17 @@
 #include <QStringBuilder>
 
 #include <memory>
+#include <unordered_map>
 
 using namespace chatterino::literals;
+
+namespace chatterino {
+
+// Global storage for original deleted messages to support toggle functionality
+static std::unordered_map<QString, MessagePtr> originalDeletedMessages;
+
+// Track which messages are currently expanded (showing original content)
+static std::unordered_set<QString> expandedDeletedMessages;
 
 namespace {
 
@@ -554,6 +563,9 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
 
     if (getSettings()->showDeletedAsHyperlinks)
     {
+        // Store the original message before replacing it
+        originalDeletedMessages[msg->id] = msg;
+        
         // Replace the message with a clickable instead of just disabling it
         auto deletionClickable = MessageBuilder::makeDeletionHyperlinkMessage(msg);
         chan->replaceMessage(msg, deletionClickable);
@@ -1178,6 +1190,30 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
 
         sink.addMessage(msg, MessageContext::Original);
         chan->addRecentChatter(msg->displayName);
+    }
+}
+
+// Implementation of deleted message toggle helper functions
+MessagePtr IrcMessageHandler::getOriginalDeletedMessage(const QString &messageId)
+{
+    auto it = originalDeletedMessages.find(messageId);
+    return (it != originalDeletedMessages.end()) ? it->second : nullptr;
+}
+
+bool IrcMessageHandler::isDeletedMessageExpanded(const QString &messageId)
+{
+    return expandedDeletedMessages.count(messageId) > 0;
+}
+
+void IrcMessageHandler::toggleDeletedMessageState(const QString &messageId)
+{
+    if (expandedDeletedMessages.count(messageId) > 0)
+    {
+        expandedDeletedMessages.erase(messageId);
+    }
+    else
+    {
+        expandedDeletedMessages.insert(messageId);
     }
 }
 

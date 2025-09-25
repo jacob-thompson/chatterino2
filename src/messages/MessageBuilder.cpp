@@ -1298,6 +1298,9 @@ MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
     builder.message().messageText = deletionText;
     builder.message().searchText = deletionText;
 
+    // Store the original message ID for reference
+    builder.message().id = originalMessage->id;
+
     return builder.release();
 }
 

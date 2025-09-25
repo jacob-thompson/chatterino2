@@ -63,6 +63,11 @@ public:
                            TwitchChannel *chan, const QString &originalContent,
                            ITwitchIrcServer &twitch, bool isSub, bool isAction);
 
+    // Helper functions for deleted message toggle functionality
+    static MessagePtr getOriginalDeletedMessage(const QString &messageId);
+    static bool isDeletedMessageExpanded(const QString &messageId);
+    static void toggleDeletedMessageState(const QString &messageId);
+
 private:
     static float similarity(const MessagePtr &msg,
                             const LimitedQueueSnapshot<MessagePtr> &messages);
