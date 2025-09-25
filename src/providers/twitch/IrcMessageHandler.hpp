@@ -67,8 +67,6 @@ public:
     static void storeOriginalDeletedMessage(const QString &messageId, 
                                            const MessagePtr &message);
     static void clearDeletedMessageStorage();
-    static void cleanupDeletedMessageStorage(
-        const std::vector<MessagePtr> &currentMessages);
 
 private:
     static float similarity(const MessagePtr &msg,

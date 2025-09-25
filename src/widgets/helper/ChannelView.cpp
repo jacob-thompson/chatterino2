@@ -3447,10 +3447,6 @@ void ChannelView::revealDeletedMessage(const QString &messageId)
         return;
     }
 
-    // Cleanup storage by removing messages that are no longer in channel history
-    auto messages = channel->getMessageSnapshot();
-    IrcMessageHandler::cleanupDeletedMessageStorage(messages);
-
     // Get the original message from storage
     auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
     if (!original)
@@ -3459,12 +3455,13 @@ void ChannelView::revealDeletedMessage(const QString &messageId)
     }
 
     // Find and replace the clickable message with the original
+    auto messages = channel->getMessageSnapshot();
     for (size_t i = 0; i < messages.size(); ++i)
     {
         if (messages[i]->id == messageId)
         {
             channel->replaceMessage(i, original);
-            return;
+            return;  // Early return once found
         }
     }
 }
