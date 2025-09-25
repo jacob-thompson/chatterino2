@@ -288,10 +288,6 @@ MessagePtr parseNoticeMessage(Communi::IrcNoticeMessage *message)
 
 }  // namespace
 
-namespace chatterino {
-
-using namespace literals;
-
 IrcMessageHandler &IrcMessageHandler::instance()
 {
     static IrcMessageHandler instance;
