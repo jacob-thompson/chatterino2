@@ -1182,11 +1182,15 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
     }
 }
 
-static std::unordered_map<QString, MessagePtr> &getDeletedMessagesStorage()
+namespace {
+
+std::unordered_map<QString, MessagePtr> &getDeletedMessagesStorage()
 {
     static std::unordered_map<QString, MessagePtr> originalDeletedMessages;
     return originalDeletedMessages;
 }
+
+}  // namespace
 
 MessagePtr IrcMessageHandler::getOriginalDeletedMessage(
     const QString &messageId)
