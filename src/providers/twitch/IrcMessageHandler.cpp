@@ -1199,12 +1199,12 @@ MessagePtr IrcMessageHandler::getOriginalDeletedMessage(
 
 bool IrcMessageHandler::isDeletedMessageExpanded(const QString &messageId)
 {
-    return expandedDeletedMessages.count(messageId) > 0;
+    return expandedDeletedMessages.contains(messageId);
 }
 
 void IrcMessageHandler::toggleDeletedMessageState(const QString &messageId)
 {
-    if (expandedDeletedMessages.count(messageId) > 0)
+    if (expandedDeletedMessages.contains(messageId))
     {
         expandedDeletedMessages.erase(messageId);
     }
