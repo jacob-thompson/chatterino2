@@ -1184,8 +1184,7 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
 }
 
 // Helper function to get the static storage for deleted messages
-static std::unordered_map<QString, MessagePtr>
-&getDeletedMessagesStorage()
+static std::unordered_map<QString, MessagePtr> &getDeletedMessagesStorage()
 {
     static std::unordered_map<QString, MessagePtr> originalDeletedMessages;
     return originalDeletedMessages;
@@ -1200,7 +1199,7 @@ MessagePtr IrcMessageHandler::getOriginalDeletedMessage(
 }
 
 void IrcMessageHandler::storeOriginalDeletedMessage(const QString &messageId,
-                                                   const MessagePtr &message)
+                                                    const MessagePtr &message)
 {
     auto &storage = getDeletedMessagesStorage();
     storage[messageId] = message;
