@@ -1277,7 +1277,7 @@ MessagePtr MessageBuilder::makeDeletionMessageFromIRC(
     return builder.release();
 }
 
-MessagePtr MessageBuilder::makeDeletionClickableMessage(
+MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
     const MessagePtr &originalMessage)
 {
     MessageBuilder builder;
@@ -1305,7 +1305,7 @@ MessagePtr MessageBuilder::makeDeletionClickableMessage(
         .emplace<TextElement>("<message deleted>", MessageElementFlag::Text,
                               MessageColor(MessageColor::Link),
                               FontStyle::ChatMedium)
-        ->setLink({Link::ToggleDeletedMessage, originalMessage->id});
+        ->setLink({Link::JumpToMessage, originalMessage->id});
     builder.message().timeoutUser = "msg:" + originalMessage->id;
 
     const auto deletionText =

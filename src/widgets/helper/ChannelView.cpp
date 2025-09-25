@@ -3154,10 +3154,6 @@ void ChannelView::handleLinkClick(QMouseEvent *event, const Link &link,
         }
         break;
 
-        case Link::ToggleDeletedMessage: {
-            // Toggle the visibility of the original deleted message
-            this->toggleDeletedMessage(link.value);
-        }
         break;
 
         default:;
@@ -3439,73 +3435,6 @@ void ChannelView::updateID()
 ChannelView::ChannelViewID ChannelView::getID() const
 {
     return this->id_;
-}
-
-void ChannelView::toggleDeletedMessage(const QString &messageId)
-{
-    // Toggle the expanded state
-    IrcMessageHandler::toggleDeletedMessageState(messageId);
-
-    // Get the channel
-    auto channel = this->underlyingChannel_;
-    if (!channel)
-    {
-        return;
-    }
-
-    // Find the message in the channel and replace it
-    auto messages = channel->getMessageSnapshot();
-    for (size_t i = 0; i < messages.size(); ++i)
-    {
-        const auto &message = messages[i];
-        if (message->id == messageId)
-        {
-            // Create replacement message based on current state
-            MessagePtr replacement;
-            if (IrcMessageHandler::isDeletedMessageExpanded(messageId))
-            {
-                // Show original content (grayed out due to Disabled flag)
-                auto original =
-                    IrcMessageHandler::getOriginalDeletedMessage(messageId);
-                if (original)
-                {
-                    replacement = original;
-                }
-                else
-                {
-                    // Fallback: create a grayed out version
-                    auto builder = MessageBuilder();
-                    builder.emplace<TimestampElement>();
-                    builder.emplace<TextElement>(
-                        message->displayName + ": [original message content]",
-                        MessageElementFlag::Text, MessageColor::Text);
-                    builder.message().flags.set(MessageFlag::Disabled);
-                    builder.message().id = messageId;
-                    replacement = builder.release();
-                }
-            }
-            else
-            {
-                // Show clickable version - always create a fresh clickable message
-                auto original =
-                    IrcMessageHandler::getOriginalDeletedMessage(messageId);
-                if (original)
-                {
-                    replacement =
-                        MessageBuilder::makeDeletionClickableMessage(original);
-                }
-                else
-                {
-                    // Fallback: create clickable from current message info
-                    replacement =
-                        MessageBuilder::makeDeletionClickableMessage(message);
-                }
-            }
-
-            channel->replaceMessage(i, replacement);
-            break;
-        }
-    }
 }
 
 }  // namespace chatterino

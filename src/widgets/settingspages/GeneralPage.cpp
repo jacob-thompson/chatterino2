@@ -532,7 +532,7 @@ void GeneralPage::initLayout(GeneralPageView &layout)
                             s.showDeletedAsClickables)
         ->setTooltip(
             "When enabled, deleted messages will be shown as clickable "
-            "elements that can be toggled to reveal the original content.")
+            "elements that reveal the original content when clicked.")
         ->conditionallyEnabledBy(s.hideModerated)
         ->addTo(layout);
 
