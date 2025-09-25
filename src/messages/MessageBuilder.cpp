@@ -1277,6 +1277,47 @@ MessagePtr MessageBuilder::makeDeletionMessageFromIRC(
     return builder.release();
 }
 
+MessagePtr MessageBuilder::makeDeletionClickableMessage(
+    const MessagePtr &originalMessage)
+{
+    MessageBuilder builder;
+
+    builder.emplace<TimestampElement>();
+    builder.message().flags.set(MessageFlag::System);
+    builder.message().flags.set(MessageFlag::DoNotTriggerNotification);
+    builder.message().flags.set(MessageFlag::ModerationAction);
+
+    MessageColor usernameColor =
+        originalMessage->usernameColor.isValid()
+            ? MessageColor(originalMessage->usernameColor)
+            : MessageColor::Text;
+
+    builder
+        .emplace<TextElement>(originalMessage->displayName,
+                              MessageElementFlag::Username, usernameColor,
+                              FontStyle::ChatMediumBold)
+        ->setLink({Link::UserInfo, originalMessage->loginName});
+
+    builder.emplace<TextElement>(": ", MessageElementFlag::Text,
+                                 MessageColor::Text);
+
+    builder
+        .emplace<TextElement>("<message deleted>", MessageElementFlag::Text,
+                              MessageColor(MessageColor::Link),
+                              FontStyle::ChatMedium)
+        ->setLink({Link::RevealDeletedMessage, originalMessage->id});
+    builder.message().timeoutUser = "msg:" + originalMessage->id;
+
+    const auto deletionText =
+        QString(originalMessage->displayName + ": <message deleted>");
+    builder.message().messageText = deletionText;
+    builder.message().searchText = deletionText;
+
+    builder.message().id = originalMessage->id;
+
+    return builder.release();
+}
+
 MessagePtr MessageBuilder::makeListOfUsersMessage(QString prefix,
                                                   QStringList users,
                                                   Channel *channel,

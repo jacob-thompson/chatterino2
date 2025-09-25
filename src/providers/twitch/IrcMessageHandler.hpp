@@ -63,6 +63,11 @@ public:
                            TwitchChannel *chan, const QString &originalContent,
                            ITwitchIrcServer &twitch, bool isSub, bool isAction);
 
+    static MessagePtr getOriginalDeletedMessage(const QString &messageId);
+    static void storeOriginalDeletedMessage(const QString &messageId,
+                                            const MessagePtr &message);
+    static void clearDeletedMessageStorage();
+
 private:
     static float similarity(const MessagePtr &msg,
                             const LimitedQueueSnapshot<MessagePtr> &messages);

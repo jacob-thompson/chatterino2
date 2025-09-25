@@ -26,6 +26,7 @@ public:
         ReplyToMessage,
         ViewThread,
         JumpToMessage,
+        RevealDeletedMessage,
     };
 
     Link();

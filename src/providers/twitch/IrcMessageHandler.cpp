@@ -32,8 +32,11 @@
 #include <QStringBuilder>
 
 #include <memory>
+#include <unordered_map>
 
 using namespace chatterino::literals;
+
+namespace chatterino {
 
 namespace {
 
@@ -278,10 +281,6 @@ MessagePtr parseNoticeMessage(Communi::IrcNoticeMessage *message)
 }
 
 }  // namespace
-
-namespace chatterino {
-
-using namespace literals;
 
 IrcMessageHandler &IrcMessageHandler::instance()
 {
@@ -552,7 +551,18 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
         return;
     }
 
-    msg->flags.set(MessageFlag::Disabled);
+    if (getSettings()->showDeletedAsClickables && getSettings()->hideModerated)
+    {
+        IrcMessageHandler::storeOriginalDeletedMessage(msg->id, msg);
+
+        auto deletionClickable =
+            MessageBuilder::makeDeletionClickableMessage(msg);
+        chan->replaceMessage(msg, deletionClickable);
+    }
+    else
+    {
+        msg->flags.set(MessageFlag::Disabled);
+    }
     msg->flags.set(MessageFlag::InvalidReplyTarget);
     if (!getSettings()->hideDeletionActions)
     {
@@ -1170,6 +1180,37 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
         sink.addMessage(msg, MessageContext::Original);
         chan->addRecentChatter(msg->displayName);
     }
+}
+
+namespace {
+
+std::unordered_map<QString, MessagePtr> &getDeletedMessagesStorage()
+{
+    static std::unordered_map<QString, MessagePtr> originalDeletedMessages;
+    return originalDeletedMessages;
+}
+
+}  // namespace
+
+MessagePtr IrcMessageHandler::getOriginalDeletedMessage(
+    const QString &messageId)
+{
+    auto &storage = getDeletedMessagesStorage();
+    auto it = storage.find(messageId);
+    return (it != storage.end()) ? it->second : nullptr;
+}
+
+void IrcMessageHandler::storeOriginalDeletedMessage(const QString &messageId,
+                                                    const MessagePtr &message)
+{
+    auto &storage = getDeletedMessagesStorage();
+    storage[messageId] = message;
+}
+
+void IrcMessageHandler::clearDeletedMessageStorage()
+{
+    auto &storage = getDeletedMessagesStorage();
+    storage.clear();
 }
 
 }  // namespace chatterino

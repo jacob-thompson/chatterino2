@@ -21,6 +21,7 @@
 #include "providers/colors/ColorProvider.hpp"
 #include "providers/links/LinkInfo.hpp"
 #include "providers/links/LinkResolver.hpp"
+#include "providers/twitch/IrcMessageHandler.hpp"
 #include "providers/twitch/TwitchAccount.hpp"
 #include "providers/twitch/TwitchChannel.hpp"
 #include "providers/twitch/TwitchIrcServer.hpp"
@@ -3152,6 +3153,10 @@ void ChannelView::handleLinkClick(QMouseEvent *event, const Link &link,
             this->scrollToMessageId(link.value);
         }
         break;
+        case Link::RevealDeletedMessage: {
+            this->revealDeletedMessage(link.value);
+        }
+        break;
 
         default:;
     }
@@ -3432,6 +3437,32 @@ void ChannelView::updateID()
 ChannelView::ChannelViewID ChannelView::getID() const
 {
     return this->id_;
+}
+
+void ChannelView::revealDeletedMessage(const QString &messageId)
+{
+    auto channel = this->underlyingChannel_;
+    if (!channel)
+    {
+        return;
+    }
+
+    auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
+    if (!original)
+    {
+        return;
+    }
+
+    // Find and replace the clickable message with the original
+    auto messages = channel->getMessageSnapshot();
+    for (size_t i = 0; i < messages.size(); ++i)
+    {
+        if (messages[i]->id == messageId)
+        {
+            channel->replaceMessage(i, original);
+            return;
+        }
+    }
 }
 
 }  // namespace chatterino
