@@ -558,8 +558,8 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
     {
         // Store the original message so it can be revealed later
         originalDeletedMessages[msg->id] = msg;
-        
-        auto deletionClickable = MessageBuilder::makeDeletionHyperlinkMessage(msg);
+
+        auto deletionClickable = MessageBuilder::makeDeletionClickableMessage(msg);
         chan->replaceMessage(msg, deletionClickable);
     }
     else
@@ -1185,7 +1185,6 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
     }
 }
 
-}
 
 MessagePtr IrcMessageHandler::getOriginalDeletedMessage(const QString &messageId)
 {

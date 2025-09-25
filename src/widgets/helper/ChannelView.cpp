@@ -3439,8 +3439,6 @@ ChannelView::ChannelViewID ChannelView::getID() const
     return this->id_;
 }
 
-}
-
 void ChannelView::revealDeletedMessage(const QString &messageId)
 {
     auto channel = this->underlyingChannel_;
