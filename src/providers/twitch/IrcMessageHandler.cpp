@@ -553,7 +553,7 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
     if (getSettings()->showDeletedAsClickables && getSettings()->hideModerated)
     {
         auto deletionClickable =
-            MessageBuilder::makeDeletionHyperlinkMessage(msg);
+            MessageBuilder::makeDeletionClickableMessage(msg);
         chan->replaceMessage(msg, deletionClickable);
     }
     else

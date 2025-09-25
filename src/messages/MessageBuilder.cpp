@@ -1277,7 +1277,7 @@ MessagePtr MessageBuilder::makeDeletionMessageFromIRC(
     return builder.release();
 }
 
-MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
+MessagePtr MessageBuilder::makeDeletionClickableMessage(
     const MessagePtr &originalMessage)
 {
     MessageBuilder builder;
