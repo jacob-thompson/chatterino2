@@ -3455,11 +3455,18 @@ void ChannelView::toggleDeletedMessage(const QString &messageId)
         return;
     }
     
+    // Get the channel to replace the message
+    auto channel = this->underlyingChannel_;
+    if (!channel)
+    {
+        return;
+    }
+    
     // Determine what message to show based on current state
     MessagePtr messageToShow;
     if (IrcMessageHandler::isDeletedMessageExpanded(messageId))
     {
-        // Show original message (but keep it marked as disabled)
+        // Show original message (but keep it marked as disabled for greyed out appearance)
         messageToShow = originalMessage;
     }
     else
@@ -3468,13 +3475,15 @@ void ChannelView::toggleDeletedMessage(const QString &messageId)
         messageToShow = MessageBuilder::makeDeletionHyperlinkMessage(originalMessage);
     }
     
-    // Find the current message in our channel and replace it
-    auto channel = this->underlyingChannel_;
-    if (channel)
+    // Find and replace the current message by searching through the message snapshot
+    auto messages = channel->getMessageSnapshot();
+    for (size_t i = 0; i < messages.size(); ++i)
     {
-        // Find the message with this ID and replace it
-        // For now, just refresh the layout to see changes
-        this->performLayout();
+        if (messages[i]->id == messageId)
+        {
+            channel->replaceMessage(i, messageToShow);
+            break;
+        }
     }
 }
 

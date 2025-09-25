@@ -557,7 +557,7 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
         return;
     }
 
-    if (getSettings()->showDeletedAsHyperlinks)
+    if (getSettings()->showDeletedAsHyperlinks && getSettings()->hideModerated)
     {
         // Store the original message before replacing it
         originalDeletedMessages[msg->id] = msg;

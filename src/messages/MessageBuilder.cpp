@@ -1287,6 +1287,17 @@ MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
     builder.message().flags.set(MessageFlag::DoNotTriggerNotification);
     builder.message().flags.set(MessageFlag::ModerationAction);
 
+    // Add username
+    builder
+        .emplace<TextElement>(originalMessage->displayName,
+                              MessageElementFlag::Username,
+                              MessageColor::Text, FontStyle::ChatMediumBold)
+        ->setLink({Link::UserInfo, originalMessage->loginName});
+    
+    // Add colon separator
+    builder.emplace<TextElement>(": ", MessageElementFlag::Text,
+                                 MessageColor::Text);
+
     // Create a simple clickable saying "<message deleted>"
     builder
         .emplace<TextElement>("<message deleted>", MessageElementFlag::Text,
@@ -1294,7 +1305,7 @@ MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
         ->setLink({Link::ToggleDeletedMessage, originalMessage->id});
     builder.message().timeoutUser = "msg:" + originalMessage->id;
 
-    const auto deletionText = QString("<message deleted>");
+    const auto deletionText = QString(originalMessage->displayName + ": <message deleted>");
     builder.message().messageText = deletionText;
     builder.message().searchText = deletionText;
 
