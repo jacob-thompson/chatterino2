@@ -3153,6 +3153,12 @@ void ChannelView::handleLinkClick(QMouseEvent *event, const Link &link,
         }
         break;
 
+        case Link::ToggleDeletedMessage: {
+            // Toggle the visibility of the original deleted message
+            this->toggleDeletedMessage(link.value);
+        }
+        break;
+
         default:;
     }
 }
@@ -3432,6 +3438,13 @@ void ChannelView::updateID()
 ChannelView::ChannelViewID ChannelView::getID() const
 {
     return this->id_;
+}
+
+void ChannelView::toggleDeletedMessage(const QString &messageId)
+{
+    // For now, just force a layout refresh
+    // TODO: Implement proper toggle functionality
+    this->performLayout();
 }
 
 }  // namespace chatterino

@@ -1287,14 +1287,14 @@ MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
     builder.message().flags.set(MessageFlag::DoNotTriggerNotification);
     builder.message().flags.set(MessageFlag::ModerationAction);
 
-    // Create a simple hyperlink saying "Message deleted"
+    // Create a simple clickable saying "<message deleted>"
     builder
-        .emplace<TextElement>("Message deleted", MessageElementFlag::Text,
+        .emplace<TextElement>("<message deleted>", MessageElementFlag::Text,
                               MessageColor(MessageColor::Link), FontStyle::ChatMedium)
-        ->setLink({Link::JumpToMessage, originalMessage->id});
+        ->setLink({Link::ToggleDeletedMessage, originalMessage->id});
     builder.message().timeoutUser = "msg:" + originalMessage->id;
 
-    const auto deletionText = QString("Message deleted");
+    const auto deletionText = QString("<message deleted>");
     builder.message().messageText = deletionText;
     builder.message().searchText = deletionText;
 

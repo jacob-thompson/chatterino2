@@ -528,9 +528,10 @@ void GeneralPage::initLayout(GeneralPageView &layout)
             "When enabled, messages deleted by moderators will be hidden.")
         ->addTo(layout);
 
-    SettingWidget::checkbox("Show deleted messages as hyperlinks", s.showDeletedAsHyperlinks)
+    SettingWidget::checkbox("Show deleted messages as clickables", s.showDeletedAsHyperlinks)
         ->setTooltip(
-            "When enabled, deleted messages will be shown as clickable hyperlinks instead of being hidden or shown in full.")
+            "When enabled, deleted messages will be shown as clickable elements that can be toggled to reveal the original content.")
+        ->conditionallyEnabledBy(s.hideModerated)
         ->addTo(layout);
 
     layout.addDropdown<QString>(

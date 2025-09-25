@@ -140,7 +140,7 @@ void MessageLayout::actuallyLayout(const MessageLayoutContext &ctx)
     }
 
     bool hideModerated = getSettings()->hideModerated;
-    bool showDeletedAsHyperlinks = getSettings()->showDeletedAsHyperlinks;
+    bool showDeletedAsClickables = getSettings()->showDeletedAsHyperlinks;
     bool hideModerationActions = getSettings()->hideModerationActions;
     bool hideBlockedTermAutomodMessages =
         getSettings()->showBlockedTermAutomodMessages.getEnum() ==
