@@ -1287,18 +1287,20 @@ MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
     builder.message().flags.set(MessageFlag::DoNotTriggerNotification);
     builder.message().flags.set(MessageFlag::ModerationAction);
 
-    // Add username
+    // Add username with preserved color
+    MessageColor usernameColor = originalMessage->usernameColor.isValid() 
+        ? MessageColor(originalMessage->usernameColor) 
+        : MessageColor::Text;
+    
     builder
         .emplace<TextElement>(originalMessage->displayName,
                               MessageElementFlag::Username,
-                              MessageColor::Text, FontStyle::ChatMediumBold)
+                              usernameColor, FontStyle::ChatMediumBold)
         ->setLink({Link::UserInfo, originalMessage->loginName});
     
-    // Add colon separator
     builder.emplace<TextElement>(": ", MessageElementFlag::Text,
                                  MessageColor::Text);
 
-    // Create a simple clickable saying "<message deleted>"
     builder
         .emplace<TextElement>("<message deleted>", MessageElementFlag::Text,
                               MessageColor(MessageColor::Link), FontStyle::ChatMedium)
@@ -1309,7 +1311,6 @@ MessagePtr MessageBuilder::makeDeletionHyperlinkMessage(
     builder.message().messageText = deletionText;
     builder.message().searchText = deletionText;
 
-    // Store the original message ID for reference
     builder.message().id = originalMessage->id;
 
     return builder.release();

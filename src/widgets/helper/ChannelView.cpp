@@ -3464,8 +3464,7 @@ void ChannelView::toggleDeletedMessage(const QString &messageId)
             MessagePtr replacement;
             if (IrcMessageHandler::isDeletedMessageExpanded(messageId))
             {
-                // Show original content - create a copy of the original but keep it marked as disabled
-                // For now, just get the original stored message
+                // Show original content (grayed out due to Disabled flag)
                 auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
                 if (original)
                 {
@@ -3485,8 +3484,17 @@ void ChannelView::toggleDeletedMessage(const QString &messageId)
             }
             else
             {
-                // Show clickable version - use the current message since it should already be clickable format
-                replacement = message;
+                // Show clickable version - always create a fresh clickable message
+                auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
+                if (original)
+                {
+                    replacement = MessageBuilder::makeDeletionHyperlinkMessage(original);
+                }
+                else
+                {
+                    // Fallback: create clickable from current message info
+                    replacement = MessageBuilder::makeDeletionHyperlinkMessage(message);
+                }
             }
             
             channel->replaceMessage(i, replacement);

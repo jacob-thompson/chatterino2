@@ -562,7 +562,6 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
         // Store the original message for toggle functionality
         originalDeletedMessages[msg->id] = msg;
         
-        // Replace the message with a clickable version
         auto deletionClickable = MessageBuilder::makeDeletionHyperlinkMessage(msg);
         chan->replaceMessage(msg, deletionClickable);
     }
