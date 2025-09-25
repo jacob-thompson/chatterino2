@@ -33,6 +33,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace chatterino::literals;
 
@@ -553,7 +554,6 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
 
     if (getSettings()->showDeletedAsClickables && getSettings()->hideModerated)
     {
-        // Store the original message so it can be revealed later
         IrcMessageHandler::storeOriginalDeletedMessage(msg->id, msg);
 
         auto deletionClickable = MessageBuilder::makeDeletionHyperlinkMessage(msg);
@@ -1183,7 +1183,6 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
 }
 
 
-// Helper function to get the static storage for deleted messages
 static std::unordered_map<QString, MessagePtr>& getDeletedMessagesStorage()
 {
     static std::unordered_map<QString, MessagePtr> originalDeletedMessages;
@@ -1202,12 +1201,56 @@ void IrcMessageHandler::storeOriginalDeletedMessage(const QString &messageId,
 {
     auto& storage = getDeletedMessagesStorage();
     storage[messageId] = message;
+    
+    // Periodic cleanup every 100 stored messages to prevent memory buildup
+    static int storeCount = 0;
+    if (++storeCount % 100 == 0)
+    {
+        // We don't have easy access to channel messages here, so we'll rely on
+        // cleanup being called from revealDeletedMessage or other mechanisms
+        if (storage.size() > 1000)
+        {
+            // Emergency cleanup if storage gets too large - clear oldest half
+            auto it = storage.begin();
+            std::advance(it, storage.size() / 2);
+            storage.erase(storage.begin(), it);
+        }
+    }
 }
 
 void IrcMessageHandler::clearDeletedMessageStorage()
 {
     auto& storage = getDeletedMessagesStorage();
     storage.clear();
+}
+
+void IrcMessageHandler::cleanupDeletedMessageStorage(
+    const std::vector<MessagePtr> &currentMessages)
+{
+    auto& storage = getDeletedMessagesStorage();
+    if (storage.empty())
+    {
+        return;
+    }
+
+    std::unordered_set<QString> currentMessageIds;
+    for (const auto& message : currentMessages)
+    {
+        currentMessageIds.insert(message->id);
+    }
+
+    auto it = storage.begin();
+    while (it != storage.end())
+    {
+        if (currentMessageIds.find(it->first) == currentMessageIds.end())
+        {
+            it = storage.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }
 
 }  // namespace chatterino
