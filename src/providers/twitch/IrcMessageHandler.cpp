@@ -553,7 +553,6 @@ void IrcMessageHandler::handleClearMessageMessage(Communi::IrcMessage *message)
 
     if (getSettings()->showDeletedAsClickables && getSettings()->hideModerated)
     {
-        // Store the original message so it can be revealed later
         IrcMessageHandler::storeOriginalDeletedMessage(msg->id, msg);
 
         auto deletionClickable =
@@ -1183,7 +1182,6 @@ void IrcMessageHandler::addMessage(Communi::IrcMessage *message,
     }
 }
 
-// Helper function to get the static storage for deleted messages
 static std::unordered_map<QString, MessagePtr> &getDeletedMessagesStorage()
 {
     static std::unordered_map<QString, MessagePtr> originalDeletedMessages;

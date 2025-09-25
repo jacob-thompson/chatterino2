@@ -3447,7 +3447,6 @@ void ChannelView::revealDeletedMessage(const QString &messageId)
         return;
     }
 
-    // Get the original message from storage
     auto original = IrcMessageHandler::getOriginalDeletedMessage(messageId);
     if (!original)
     {
@@ -3461,7 +3460,7 @@ void ChannelView::revealDeletedMessage(const QString &messageId)
         if (messages[i]->id == messageId)
         {
             channel->replaceMessage(i, original);
-            return;  // Early return once found
+            return;
         }
     }
 }
