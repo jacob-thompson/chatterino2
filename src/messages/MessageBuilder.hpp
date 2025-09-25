@@ -184,7 +184,7 @@ public:
                                                bool hostOn);
     static MessagePtr makeDeletionMessageFromIRC(
         const MessagePtr &originalMessage);
-    static MessagePtr makeDeletionClickableMessage(
+    static MessagePtr makeDeletionHyperlinkMessage(
         const MessagePtr &originalMessage);
     static MessagePtr makeListOfUsersMessage(QString prefix, QStringList users,
                                              Channel *channel,

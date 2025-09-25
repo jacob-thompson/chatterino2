@@ -447,9 +447,6 @@ private:
 
     std::unordered_set<std::shared_ptr<MessageLayout>> messagesOnScreen_;
 
-    // Map to track original messages that have been replaced with clickable versions
-    std::unordered_map<QString, MessagePtr> originalDeletedMessages_;
-
     MessageColors messageColors_;
     MessagePreferences messagePreferences_;
 

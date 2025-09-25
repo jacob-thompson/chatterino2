@@ -3454,16 +3454,14 @@ void ChannelView::revealDeletedMessage(const QString &messageId)
         return;
     }
 
-    // Find the clickable message and replace it with the original
+    // Find and replace the clickable message with the original
     auto messages = channel->getMessageSnapshot();
     for (size_t i = 0; i < messages.size(); ++i)
     {
-        const auto &message = messages[i];
-        if (message->id == messageId)
+        if (messages[i]->id == messageId)
         {
-            // Replace with the original message (it will appear grayed out due to Disabled flag)
             channel->replaceMessage(i, original);
-            break;
+            return;  // Early return once found
         }
     }
 }
