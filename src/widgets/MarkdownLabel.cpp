@@ -15,6 +15,8 @@ void MarkdownLabel::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton)
     {
+        this->ensureDocumentUpdated();
+        
         QRectF textRect = this->textRect();
         QPointF pos = event->pos() - textRect.topLeft();
 
@@ -48,6 +50,8 @@ void MarkdownLabel::mousePressEvent(QMouseEvent *event)
 
 void MarkdownLabel::mouseMoveEvent(QMouseEvent *event)
 {
+    this->ensureDocumentUpdated();
+    
     QRectF textRect = this->textRect();
     QPointF pos = event->pos() - textRect.topLeft();
 
@@ -66,6 +70,8 @@ void MarkdownLabel::mouseMoveEvent(QMouseEvent *event)
 
 void MarkdownLabel::paintEvent(QPaintEvent *event)
 {
+    this->ensureDocumentUpdated();
+    
     QPainter painter(this);
 
     painter.setFont(getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
@@ -83,31 +89,35 @@ void MarkdownLabel::paintEvent(QPaintEvent *event)
     painter.restore();
 }
 
-QRectF MarkdownLabel::textRect() const
+void MarkdownLabel::scaleChangedEvent(float scale)
 {
-    return QRectF(this->rect()).marginsRemoved(this->currentPadding_);
+    // Reset document so it gets recreated with new scale
+    this->document_.reset();
+    this->lastText_.clear();
+    Label::scaleChangedEvent(scale);
 }
 
-void MarkdownLabel::updateSize()
+void MarkdownLabel::ensureDocumentUpdated() const
 {
-    this->currentPadding_ = this->basePadding_.toMarginsF() * this->scale();
-
-    auto yPadding = this->currentPadding_.top() + this->currentPadding_.bottom();
-
-    this->document_->setDefaultFont(
-        getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
-    this->document_->setMarkdown(this->text_);
-
-    // Use word wrap if enabled, otherwise use a reasonable default
-    qreal testWidth = this->wordWrap_
-                          ? 400.0 * this->scale()
-                          : this->document_->idealWidth();
-    this->document_->setTextWidth(testWidth);
-
-    auto height = this->document_->size().height() + yPadding;
-    auto width = qMin(this->document_->idealWidth(), testWidth) +
-                 this->currentPadding_.left() +
-                 this->currentPadding_.right();
+    const QString &currentText = this->text_;
+    
+    if (!this->document_ || this->lastText_ != currentText)
+    {
+        if (!this->document_)
+        {
+            this->document_ = std::make_unique<QTextDocument>();
+        }
+        
+        this->document_->setDefaultFont(
+            getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
+        this->document_->setMarkdown(currentText);
+        
+        // Use word wrap by default for markdown content
+        qreal testWidth = 400.0 * this->scale();
+        this->document_->setTextWidth(testWidth);
+        
+        this->lastText_ = currentText;
+    }
 }
 
 }  // namespace chatterino

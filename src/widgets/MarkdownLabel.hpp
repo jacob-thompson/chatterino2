@@ -17,15 +17,12 @@ protected:
     void mousePressEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
+    void scaleChangedEvent(float scale) override;
 
 private:
-    QRectF textRect() const;
-    void updateSize();
+    void ensureDocumentUpdated() const;
     mutable std::unique_ptr<QTextDocument> document_;
-    QMargins basePadding_;
-    QMarginsF currentPadding_;
-    QString text_;
-    bool wordWrap_ = true;
+    mutable QString lastText_;
 };
 
 }  // namespace chatterino

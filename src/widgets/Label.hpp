@@ -43,7 +43,6 @@ protected:
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
 
-private:
     void updateSize();
     QRectF textRect() const;
 
@@ -64,6 +63,8 @@ private:
     QMargins basePadding_;
     /// The actual scaled padding
     QMarginsF currentPadding_;
+
+private:
 
     bool centered_ = false;
     bool wordWrap_ = false;
