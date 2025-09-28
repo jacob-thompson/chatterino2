@@ -256,4 +256,15 @@ Fonts::FontData Fonts::createFontData(FontStyle type, float scale)
     return font;
 }
 
+QFont Fonts::getChatFont()
+{
+    const auto &s = *getSettings();
+    QFont font(
+        s.chatFontFamily.getValue(),
+        s.chatFontSize.getValue(),
+        s.chatFontWeight.getValue()
+    );
+    return font;
+}
+
 }  // namespace chatterino

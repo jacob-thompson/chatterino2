@@ -153,34 +153,16 @@ void GeneralPage::initLayout(GeneralPageView &layout)
 #endif
     }
 
-    layout.addDropdown<QString>(
-        "Font", {"Segoe UI", "Arial", "Choose..."}, s.chatFontFamily,
-        [](auto val) {
-            return val;
-        },
-        [this](auto args) {
-            return this->getFont(args);
-        },
-        true, "", true);
-    layout.addDropdown<int>(
-        "Font size", {"9pt", "10pt", "12pt", "14pt", "16pt", "20pt"},
-        s.chatFontSize,
-        [](auto val) {
-            return QString::number(val) + "pt";
-        },
-        [](auto args) {
-            return fuzzyToInt(args.value, 10);
-        });
-    layout.addDropdown<int>(
-        "Font weight",
-        {"100", "200", "300", "400", "500", "600", "700", "800", "900"},
-        s.chatFontWeight,
-        [](auto val) {
-            return QString::number(val);
-        },
-        [](auto args) {
-            return fuzzyToInt(args.value, 400);
-        });
+    SettingWidget::fontButton(
+        "Font", s.chatFontFamily, &Fonts::getChatFont,
+        [](QFont font) {
+            auto &s = *getSettings();
+            s.chatFontFamily.setValue(font.family());
+            s.chatFontSize.setValue(font.pointSize());
+            s.chatFontWeight.setValue(font.weight());
+        })
+        ->addTo(layout);
+
     layout.addDropdown<float>(
         "Zoom", ZOOM_LEVELS, s.uiScale,
         [](auto val) {

@@ -51,6 +51,8 @@ public:
 
     pajlada::Signals::NoArgSignal fontChanged;
 
+    static QFont getChatFont();
+
 private:
     struct FontData {
         FontData(const QFont &_font)
