@@ -158,23 +158,34 @@ void Label::paintEvent(QPaintEvent * /*event*/)
         !this->text_.isEmpty())
     {
         // Use theme color for text instead of palette
-        QColor textColor = this->theme ? this->theme->window.text : Qt::black;
-        painter.setBrush(textColor);
-
+        QColor textColor = this->theme ? this->theme->messages.textColors.regular : Qt::black;
+        
         this->markdownDocument_->setTextWidth(textRect.width());
         this->markdownDocument_->setDefaultFont(
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
         this->markdownDocument_->setMarkdown(this->text_);
 
+        // Create a palette for the document with the correct text color
+        QPalette docPalette = this->palette();
+        docPalette.setColor(QPalette::Text, textColor);
+        docPalette.setColor(QPalette::WindowText, textColor);
+        
         // Set the default style sheet to use the correct text color for all elements
         this->markdownDocument_->setDefaultStyleSheet(
             QString("* { color: %1; }").arg(textColor.name()));
 
+        // Set painter state for text rendering
+        painter.setPen(textColor);
+
         painter.save();
         painter.translate(textRect.topLeft());
 
-        this->markdownDocument_->drawContents(
-            &painter, QRectF(0, 0, textRect.width(), textRect.height()));
+        // Draw with the correct palette context
+        QAbstractTextDocumentLayout::PaintContext paintContext;
+        paintContext.palette = docPalette;
+        paintContext.clip = QRectF(0, 0, textRect.width(), textRect.height());
+        this->markdownDocument_->documentLayout()->draw(
+            &painter, paintContext);
 
         painter.restore();
     }
@@ -195,7 +206,7 @@ void Label::paintEvent(QPaintEvent * /*event*/)
                                       : Qt::AlignCenter;
 
         // Use theme color for text instead of palette
-        QColor textColor = this->theme ? this->theme->window.text : Qt::black;
+        QColor textColor = this->theme ? this->theme->messages.textColors.regular : Qt::black;
         painter.setBrush(textColor);
 
         QTextOption option(alignment);
