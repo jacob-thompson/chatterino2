@@ -19,7 +19,7 @@ protected:
     void paintEvent(QPaintEvent *event) override;
     void scaleChangedEvent(float scale) override;
     void resizeEvent(QResizeEvent *event) override;
-    void updateSize() override;
+    void updateSize();
 
 private:
     void ensureDocumentUpdated() const;
