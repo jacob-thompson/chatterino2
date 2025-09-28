@@ -3,7 +3,7 @@
 #include "singletons/Theme.hpp"
 #include "util/LayoutCreator.hpp"
 #include "widgets/buttons/SvgButton.hpp"
-#include "widgets/Label.hpp"
+#include "widgets/MarkdownLabel.hpp"
 
 #include <QCheckBox>
 #include <QDialogButtonBox>
@@ -188,9 +188,7 @@ EditUserNotesDialog::EditUserNotesDialog(QWidget *parent)
 
     auto edit = splitter.emplace<QTextEdit>().assign(&this->textEdit_);
 
-    auto preview = splitter.emplace<Label>().assign(&this->previewLabel_);
-    preview->setMarkdownEnabled(true);
-    preview->setWordWrap(true);
+    auto preview = splitter.emplace<MarkdownLabel>().assign(&this->previewLabel_);
     preview->setPadding(QMargins(10, 10, 10, 10));
 
     this->splitter_->setSizes({350, 350});

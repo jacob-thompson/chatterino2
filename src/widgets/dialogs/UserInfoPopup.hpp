@@ -1,6 +1,7 @@
 #pragma once
 
 #include "widgets/DraggablePopup.hpp"
+#include "widgets/MarkdownLabel.hpp"
 
 #include <pajlada/signals/scoped-connection.hpp>
 #include <pajlada/signals/signal.hpp>
@@ -13,6 +14,7 @@ namespace chatterino {
 class Channel;
 using ChannelPtr = std::shared_ptr<Channel>;
 class Label;
+class MarkdownLabel;
 class EditUserNotesDialog;
 class ChannelView;
 class Split;
@@ -90,7 +92,7 @@ private:
 
         QCheckBox *block = nullptr;
         QCheckBox *ignoreHighlights = nullptr;
-        Label *notesPreview = nullptr;
+        MarkdownLabel *notesPreview = nullptr;
         LabelButton *notesAdd = nullptr;
 
         Label *noMessagesLabel = nullptr;

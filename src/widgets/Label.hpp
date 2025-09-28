@@ -5,10 +5,7 @@
 
 #include <pajlada/signals/signalholder.hpp>
 
-#include <memory>
-
 class QFontMetricsF;
-class QTextDocument;
 
 namespace chatterino {
 
@@ -38,15 +35,10 @@ public:
     /// render the current text.
     void setShouldElide(bool shouldElide);
 
-    bool getMarkdownEnabled() const;
-    void setMarkdownEnabled(bool enabled);
-
 protected:
     void scaleChangedEvent(float scale_) override;
     void paintEvent(QPaintEvent *) override;
     void resizeEvent(QResizeEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
 
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
@@ -76,13 +68,10 @@ private:
     bool centered_ = false;
     bool wordWrap_ = false;
     bool shouldElide_ = false;
-    bool markdownEnabled_ = false;
     /// The text, but elided. Only set if shouldElide_ is true
     QString elidedText_;
 
     pajlada::Signals::SignalHolder connections_;
-
-    mutable std::unique_ptr<QTextDocument> markdownDocument_;
 };
 
 }  // namespace chatterino
