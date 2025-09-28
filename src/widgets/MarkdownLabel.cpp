@@ -16,13 +16,13 @@ void MarkdownLabel::mousePressEvent(QMouseEvent *event)
     if (event->button() == Qt::LeftButton)
     {
         this->ensureDocumentUpdated();
-        
+
         if (!this->document_)
         {
             Label::mousePressEvent(event);
             return;
         }
-        
+
         QRectF textRect = this->textRect();
         QPointF pos = event->pos() - textRect.topLeft();
 
@@ -51,19 +51,19 @@ void MarkdownLabel::mousePressEvent(QMouseEvent *event)
         }
     }
 
-    Label::mousePressEvent(event);
+    BaseWidget::mousePressEvent(event);
 }
 
 void MarkdownLabel::mouseMoveEvent(QMouseEvent *event)
 {
     this->ensureDocumentUpdated();
-    
+
     if (!this->document_)
     {
         Label::mouseMoveEvent(event);
         return;
     }
-    
+
     QRectF textRect = this->textRect();
     QPointF pos = event->pos() - textRect.topLeft();
 
@@ -77,20 +77,20 @@ void MarkdownLabel::mouseMoveEvent(QMouseEvent *event)
         this->setCursor(Qt::ArrowCursor);
     }
 
-    Label::mouseMoveEvent(event);
+    BaseWidget::mouseMoveEvent(event);
 }
 
 void MarkdownLabel::paintEvent(QPaintEvent *event)
 {
     this->ensureDocumentUpdated();
-    
+
     if (!this->document_)
     {
         // Fallback to base class rendering if document failed
         Label::paintEvent(event);
         return;
     }
-    
+
     QPainter painter(this);
 
     painter.setFont(getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
@@ -120,7 +120,7 @@ void MarkdownLabel::resizeEvent(QResizeEvent *event)
 {
     // Update document width when resized
     this->updateDocumentSize();
-    
+
     // Call base class but skip eliding logic for markdown
     BaseWidget::resizeEvent(event);
 }
@@ -129,23 +129,25 @@ void MarkdownLabel::updateSize()
 {
     // Update padding from base class
     this->currentPadding_ = this->basePadding_.toMarginsF() * this->scale();
-    
+
     // Update document first
     this->ensureDocumentUpdated();
-    
+
     if (this->document_)
     {
         // Set a reasonable width for the document based on word wrap
-        qreal testWidth = 400.0 * this->scale();
+        qreal testWidth = this->wordWrap_
+                              ? 400.0 * this->scale()
+                              : this->document_->idealWidth();
         this->document_->setTextWidth(testWidth);
-        
+
         // Calculate size based on document
         auto yPadding = this->currentPadding_.top() + this->currentPadding_.bottom();
         auto height = this->document_->size().height() + yPadding;
         auto width = qMin(this->document_->idealWidth(), testWidth) +
                      this->currentPadding_.left() +
                      this->currentPadding_.right();
-        
+
         this->sizeHint_ = QSizeF(width, height).toSize();
         this->minimumSizeHint_ = this->sizeHint_;
     }
@@ -155,14 +157,14 @@ void MarkdownLabel::updateSize()
         Label::updateSize();
         return;
     }
-    
+
     this->updateGeometry();
 }
 
 void MarkdownLabel::ensureDocumentUpdated() const
 {
     const QString &currentText = this->text_;
-    
+
     // Don't create document for empty text
     if (currentText.isEmpty())
     {
@@ -170,24 +172,25 @@ void MarkdownLabel::ensureDocumentUpdated() const
         this->lastText_.clear();
         return;
     }
-    
+
     if (!this->document_ || this->lastText_ != currentText)
     {
         if (!this->document_)
         {
             this->document_ = std::make_unique<QTextDocument>();
         }
-        
+
         this->document_->setDefaultFont(
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
         this->document_->setMarkdown(currentText);
-        
+
         this->lastText_ = currentText;
     }
 }
 
 void MarkdownLabel::updateDocumentSize() const
 {
+    /*
     if (this->document_)
     {
         // Set text width based on current widget size, but with a minimum
@@ -195,6 +198,7 @@ void MarkdownLabel::updateDocumentSize() const
         qreal width = qMax(textRect.width(), 100.0 * this->scale());
         this->document_->setTextWidth(width);
     }
+    */
 }
 
 }  // namespace chatterino

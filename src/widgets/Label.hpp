@@ -54,6 +54,8 @@ protected:
     /// Return true if the elided text changed
     bool updateElidedText(const QFontMetricsF &fontMetrics, qreal width);
 
+    bool wordWrap_ = false;
+
     QString text_;
     FontStyle fontStyle_;
     QSize sizeHint_;
@@ -67,7 +69,6 @@ protected:
 private:
 
     bool centered_ = false;
-    bool wordWrap_ = false;
     bool shouldElide_ = false;
     /// The text, but elided. Only set if shouldElide_ is true
     QString elidedText_;
