@@ -156,12 +156,21 @@ void Label::paintEvent(QPaintEvent * /*event*/)
     if (this->markdownEnabled_ && this->markdownDocument_ &&
         !this->text_.isEmpty())
     {
-        painter.setBrush(this->palette().windowText());
+        // Use theme color for text instead of palette
+        QColor textColor = this->theme ? this->theme->window.text : Qt::black;
+        painter.setBrush(textColor);
 
         this->markdownDocument_->setTextWidth(textRect.width());
         this->markdownDocument_->setDefaultFont(
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
         this->markdownDocument_->setMarkdown(this->text_);
+
+        // Set up a palette for the document to use the correct text color
+        QPalette docPalette;
+        docPalette.setColor(QPalette::Text, textColor);
+        docPalette.setColor(QPalette::WindowText, textColor);
+        this->markdownDocument_->setDefaultStyleSheet(
+            QString("* { color: %1; }").arg(textColor.name()));
 
         painter.save();
         painter.translate(textRect.topLeft());
@@ -187,7 +196,9 @@ void Label::paintEvent(QPaintEvent * /*event*/)
                                       ? Qt::AlignLeft | Qt::AlignVCenter
                                       : Qt::AlignCenter;
 
-        painter.setBrush(this->palette().windowText());
+        // Use theme color for text instead of palette
+        QColor textColor = this->theme ? this->theme->window.text : Qt::black;
+        painter.setBrush(textColor);
 
         QTextOption option(alignment);
         if (this->wordWrap_)
@@ -360,6 +371,13 @@ void Label::mouseMoveEvent(QMouseEvent *event)
     }
 
     BaseWidget::mouseMoveEvent(event);
+}
+
+void Label::themeChangedEvent()
+{
+    // Force update of the widget when theme changes to ensure markdown colors are updated
+    this->update();
+    BaseWidget::themeChangedEvent();
 }
 
 }  // namespace chatterino
