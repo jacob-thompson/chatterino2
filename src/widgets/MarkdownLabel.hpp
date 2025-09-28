@@ -18,6 +18,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void paintEvent(QPaintEvent *event) override;
     void scaleChangedEvent(float scale) override;
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     void ensureDocumentUpdated() const;

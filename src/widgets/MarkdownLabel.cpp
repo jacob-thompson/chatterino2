@@ -17,6 +17,12 @@ void MarkdownLabel::mousePressEvent(QMouseEvent *event)
     {
         this->ensureDocumentUpdated();
         
+        if (!this->document_)
+        {
+            Label::mousePressEvent(event);
+            return;
+        }
+        
         QRectF textRect = this->textRect();
         QPointF pos = event->pos() - textRect.topLeft();
 
@@ -52,6 +58,12 @@ void MarkdownLabel::mouseMoveEvent(QMouseEvent *event)
 {
     this->ensureDocumentUpdated();
     
+    if (!this->document_)
+    {
+        Label::mouseMoveEvent(event);
+        return;
+    }
+    
     QRectF textRect = this->textRect();
     QPointF pos = event->pos() - textRect.topLeft();
 
@@ -71,6 +83,13 @@ void MarkdownLabel::mouseMoveEvent(QMouseEvent *event)
 void MarkdownLabel::paintEvent(QPaintEvent *event)
 {
     this->ensureDocumentUpdated();
+    
+    if (!this->document_)
+    {
+        // Fallback to base class rendering if document failed
+        Label::paintEvent(event);
+        return;
+    }
     
     QPainter painter(this);
 
@@ -97,9 +116,30 @@ void MarkdownLabel::scaleChangedEvent(float scale)
     Label::scaleChangedEvent(scale);
 }
 
+void MarkdownLabel::resizeEvent(QResizeEvent *event)
+{
+    // Update document width when resized
+    if (this->document_)
+    {
+        QRectF textRect = this->textRect();
+        this->document_->setTextWidth(textRect.width());
+    }
+    
+    // Call base class but skip eliding logic for markdown
+    BaseWidget::resizeEvent(event);
+}
+
 void MarkdownLabel::ensureDocumentUpdated() const
 {
     const QString &currentText = this->text_;
+    
+    // Don't create document for empty text
+    if (currentText.isEmpty())
+    {
+        this->document_.reset();
+        this->lastText_.clear();
+        return;
+    }
     
     if (!this->document_ || this->lastText_ != currentText)
     {
@@ -112,9 +152,9 @@ void MarkdownLabel::ensureDocumentUpdated() const
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
         this->document_->setMarkdown(currentText);
         
-        // Use word wrap by default for markdown content
-        qreal testWidth = 400.0 * this->scale();
-        this->document_->setTextWidth(testWidth);
+        // Set text width based on current widget size
+        QRectF textRect = this->textRect();
+        this->document_->setTextWidth(textRect.width());
         
         this->lastText_ = currentText;
     }
