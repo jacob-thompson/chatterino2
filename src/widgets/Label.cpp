@@ -165,10 +165,7 @@ void Label::paintEvent(QPaintEvent * /*event*/)
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
         this->markdownDocument_->setMarkdown(this->text_);
 
-        // Set up a palette for the document to use the correct text color
-        QPalette docPalette;
-        docPalette.setColor(QPalette::Text, textColor);
-        docPalette.setColor(QPalette::WindowText, textColor);
+        // Set the default style sheet to use the correct text color for all elements
         this->markdownDocument_->setDefaultStyleSheet(
             QString("* { color: %1; }").arg(textColor.name()));
 
