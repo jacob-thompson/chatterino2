@@ -127,12 +127,36 @@ void MarkdownLabel::resizeEvent(QResizeEvent *event)
 
 void MarkdownLabel::updateSize()
 {
-    // First call the base class updateSize to handle padding and basic sizing
-    Label::updateSize();
+    // Update padding from base class
+    this->currentPadding_ = this->basePadding_.toMarginsF() * this->scale();
     
-    // Then update our document to match
+    // Update document first
     this->ensureDocumentUpdated();
-    this->updateDocumentSize();
+    
+    if (this->document_)
+    {
+        // Set a reasonable width for the document based on word wrap
+        qreal testWidth = 400.0 * this->scale();
+        this->document_->setTextWidth(testWidth);
+        
+        // Calculate size based on document
+        auto yPadding = this->currentPadding_.top() + this->currentPadding_.bottom();
+        auto height = this->document_->size().height() + yPadding;
+        auto width = qMin(this->document_->idealWidth(), testWidth) +
+                     this->currentPadding_.left() +
+                     this->currentPadding_.right();
+        
+        this->sizeHint_ = QSizeF(width, height).toSize();
+        this->minimumSizeHint_ = this->sizeHint_;
+    }
+    else
+    {
+        // Fallback to base class calculation if no document
+        Label::updateSize();
+        return;
+    }
+    
+    this->updateGeometry();
 }
 
 void MarkdownLabel::ensureDocumentUpdated() const
@@ -166,9 +190,10 @@ void MarkdownLabel::updateDocumentSize() const
 {
     if (this->document_)
     {
-        // Set text width based on current widget size
+        // Set text width based on current widget size, but with a minimum
         QRectF textRect = this->textRect();
-        this->document_->setTextWidth(textRect.width());
+        qreal width = qMax(textRect.width(), 100.0 * this->scale());
+        this->document_->setTextWidth(width);
     }
 }
 
