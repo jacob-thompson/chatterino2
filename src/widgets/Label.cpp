@@ -1,3 +1,4 @@
+#include "singletons/Theme.hpp"
 #include "widgets/Label.hpp"
 
 #include "Application.hpp"
