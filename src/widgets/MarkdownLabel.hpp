@@ -19,9 +19,11 @@ protected:
     void paintEvent(QPaintEvent *event) override;
     void scaleChangedEvent(float scale) override;
     void resizeEvent(QResizeEvent *event) override;
+    void updateSize() override;
 
 private:
     void ensureDocumentUpdated() const;
+    void updateDocumentSize() const;
     mutable std::unique_ptr<QTextDocument> document_;
     mutable QString lastText_;
 };

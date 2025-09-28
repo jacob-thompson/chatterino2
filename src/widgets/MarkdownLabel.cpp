@@ -119,14 +119,20 @@ void MarkdownLabel::scaleChangedEvent(float scale)
 void MarkdownLabel::resizeEvent(QResizeEvent *event)
 {
     // Update document width when resized
-    if (this->document_)
-    {
-        QRectF textRect = this->textRect();
-        this->document_->setTextWidth(textRect.width());
-    }
+    this->updateDocumentSize();
     
     // Call base class but skip eliding logic for markdown
     BaseWidget::resizeEvent(event);
+}
+
+void MarkdownLabel::updateSize()
+{
+    // First call the base class updateSize to handle padding and basic sizing
+    Label::updateSize();
+    
+    // Then update our document to match
+    this->ensureDocumentUpdated();
+    this->updateDocumentSize();
 }
 
 void MarkdownLabel::ensureDocumentUpdated() const
@@ -152,11 +158,17 @@ void MarkdownLabel::ensureDocumentUpdated() const
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
         this->document_->setMarkdown(currentText);
         
+        this->lastText_ = currentText;
+    }
+}
+
+void MarkdownLabel::updateDocumentSize() const
+{
+    if (this->document_)
+    {
         // Set text width based on current widget size
         QRectF textRect = this->textRect();
         this->document_->setTextWidth(textRect.width());
-        
-        this->lastText_ = currentText;
     }
 }
 
