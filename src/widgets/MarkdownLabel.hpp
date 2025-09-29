@@ -20,7 +20,7 @@ public:
     explicit MarkdownLabel(BaseWidget *parent, QString text = QString(),
                           FontStyle style = FontStyle::UiMedium);
 
-    void setText(const QString &text) override;
+    void setText(const QString &text);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
