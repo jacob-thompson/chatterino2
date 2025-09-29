@@ -16,9 +16,9 @@ class MarkdownLabel : public Label
 {
 public:
     explicit MarkdownLabel(QString text = QString(),
-                          FontStyle style = FontStyle::UiMedium);
+                           FontStyle style = FontStyle::UiMedium);
     explicit MarkdownLabel(BaseWidget *parent, QString text = QString(),
-                          FontStyle style = FontStyle::UiMedium);
+                           FontStyle style = FontStyle::UiMedium);
 
     void setText(const QString &text);
 
