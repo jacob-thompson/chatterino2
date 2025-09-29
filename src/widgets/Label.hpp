@@ -43,7 +43,6 @@ public:
 
 protected:
     void scaleChangedEvent(float scale_) override;
-    void themeChangedEvent() override;
     void paintEvent(QPaintEvent *) override;
     void resizeEvent(QResizeEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;

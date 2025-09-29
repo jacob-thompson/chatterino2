@@ -157,30 +157,23 @@ void Label::paintEvent(QPaintEvent * /*event*/)
     if (this->markdownEnabled_ && this->markdownDocument_ &&
         !this->text_.isEmpty())
     {
-        // Use theme color for text instead of palette
         QColor textColor = this->theme ? this->theme->messages.textColors.regular : Qt::black;
-        
+
         this->markdownDocument_->setTextWidth(textRect.width());
         this->markdownDocument_->setDefaultFont(
             getApp()->getFonts()->getFont(this->getFontStyle(), this->scale()));
         this->markdownDocument_->setMarkdown(this->text_);
 
-        // Create a palette for the document with the correct text color
         QPalette docPalette = this->palette();
         docPalette.setColor(QPalette::Text, textColor);
         docPalette.setColor(QPalette::WindowText, textColor);
-        
-        // Set the default style sheet to use the correct text color for all elements
-        this->markdownDocument_->setDefaultStyleSheet(
-            QString("* { color: %1; }").arg(textColor.name()));
 
-        // Set painter state for text rendering
         painter.setPen(textColor);
 
         painter.save();
         painter.translate(textRect.topLeft());
 
-        // Draw with the correct palette context
+        // create a rendering context using our text color and document palette
         QAbstractTextDocumentLayout::PaintContext paintContext;
         paintContext.palette = docPalette;
         paintContext.clip = QRectF(0, 0, textRect.width(), textRect.height());
@@ -380,13 +373,6 @@ void Label::mouseMoveEvent(QMouseEvent *event)
     }
 
     BaseWidget::mouseMoveEvent(event);
-}
-
-void Label::themeChangedEvent()
-{
-    // Force update of the widget when theme changes to ensure markdown colors are updated
-    this->update();
-    BaseWidget::themeChangedEvent();
 }
 
 }  // namespace chatterino
